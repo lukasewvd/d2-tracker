@@ -2739,7 +2739,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 
                 return DHIS2EventFactory.getByStage(orgUnitId, programStageId, null, pager, true, null, null, ordering).then(function(events) {                	
                 	var allEventsWithPossibleDuplicates = internalProcessEventGrid( events );                	
-                    var filterUrl = '&dueDateStart=' + lastEventDate + '&dueDateEnd=' + lastEventDate; 
+                    var filterUrl = '&dueDateStart=' + DateUtils.formatFromUserToApi(lastEventDate) + '&dueDateEnd=' + DateUtils.formatFromUserToApi(lastEventDate); 
                     return DHIS2EventFactory.getByStage(orgUnitId, programStageId, null, pager, true, null, filterUrl, ordering).then(function(events) {
                     	allEventsWithPossibleDuplicates = allEventsWithPossibleDuplicates.concat( internalProcessEventGrid( events ) );
                         eventScopeExceptCurrent = [];
