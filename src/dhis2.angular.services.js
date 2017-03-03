@@ -367,7 +367,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for common utils */
-.service('CommonUtils', function($translate, DateUtils, OptionSetService, CurrentSelection, FileService, OrgUnitFactory, NotificationService, SessionStorageService){
+.service('CommonUtils', function($translate, DateUtils, OptionSetService, CurrentSelection, FileService, OrgUnitFactory, NotificationService, SessionStorageService, storage){
     
     var setFileName = function(event, valueId, dataElementId){
         var fileNames = CurrentSelection.getFileNames() || {};
@@ -490,7 +490,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             return username;
         },
         getSystemSetting: function(){
-            var settings = SessionStorageService.get('SYSTEM_SETTING');
+            var settings = storage.get('SYSTEM_SETTING');            
             return settings;
         }
     };
