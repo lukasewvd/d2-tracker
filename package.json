@@ -1,0 +1,30 @@
+{
+  "name": "d2-tracker",
+  "version": "27.0.0",
+  "description": "Shared angular code for tracker-capture and event-capture apps",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dhis2/tracker-core.git"
+  },
+  "author": "Mark Polak <mark@dhis2.org>",
+  "license": "BSD-3-Clause",
+  "scripts": {
+    "prebuild": "(rm -r lib 2>/dev/null || true) && mkdir lib",
+    "build": "gulp",
+    "prepublish": "npm run build",
+    "watch": "gulp watch"
+  },
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "gulp-angular-templatecache": "^2.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/dhis2/tracker-core/issues"
+  },
+  "homepage": "https://github.com/dhis2/tracker-core#readme",
+  "main": "gulpfile.js",
+  "keywords": [
+    "DHIS2",
+    "tracker"
+  ]
+}
