@@ -4,7 +4,7 @@
   "description": "Shared angular code for tracker-capture and event-capture apps",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dhis2/tracker-core.git"
+    "url": "git+https://github.com/dhis2/d2-tracker.git"
   },
   "author": "Mark Polak <mark@dhis2.org>",
   "license": "BSD-3-Clause",
@@ -19,9 +19,9 @@
     "gulp-angular-templatecache": "^2.0.0"
   },
   "bugs": {
-    "url": "https://github.com/dhis2/tracker-core/issues"
+    "url": "https://github.com/dhis2/d2-tracker/issues"
   },
-  "homepage": "https://github.com/dhis2/tracker-core#readme",
+  "homepage": "https://github.com/dhis2/d2-tracker#readme",
   "main": "gulpfile.js",
   "keywords": [
     "DHIS2",
