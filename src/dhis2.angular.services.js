@@ -3277,8 +3277,28 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             }
             return def.promise;
         },
+        getOrgUnitReportDateRange: function(orgUnit) {
+            var reportDateRange = { maxDate: '0', minDate: ''};
+            var cdate = orgUnit.cdate ? orgUnit.cdate : orgUnit.closedDate ? orgUnit.closedDate.substring(0,10) : null;
+            var odate = orgUnit.odate ? orgUnit.odate : orgUnit.openingDate ? orgUnit.openingDate.substring(0,10) : null;
+            if (odate) {
+                /*If the orgunit has an opening date, then it is taken as the min-date otherwise the min-date is open*/
+                reportDateRange.minDate = odate;
+            }
+            if (cdate) {
+                /*If closed date of the org-unit is later than today then today's date is taken as the max-date otherwise
+                * the closed date of the org-unit is taken as the max-date*/
+                if (DateUtils.isAfterToday(cdate)) {
+                    reportDateRange.maxDate = DateUtils.getToday();
+                } else {
+                    reportDateRange.maxDate = cdate;
+                }
+            }
+            return reportDateRange;
+        },
         getFromStoreOrServer: function(uid){
             var deferred = $q.defer();
+            var orgUnitFactory = this;
             if (db === null) {
                 openStore().then(getOu, function () {
                     deferred.reject("DB not opened");
@@ -3287,6 +3307,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             else {                
                 getOu();                
             }
+
             function getOu() {
                 var tx = db.transaction(["ou"]);
                 var store = tx.objectStore("ou");
@@ -3295,6 +3316,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 query.onsuccess = function(e){
                     if(e.target.result){
                         e.target.result.closedStatus = getOrgUnitClosedStatus(e.target.result);
+                        e.target.result.reportDateRange = orgUnitFactory.getOrgUnitReportDateRange(e.target.result);
                         e.target.result.id = uid;
                         e.target.result.displayName = e.target.result.n;
                         delete(e.target.result.n);
@@ -3307,6 +3329,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         q.onsuccess = function(e){
                             if( e.target.result ){
                                 e.target.result.closedStatus = getOrgUnitClosedStatus(e.target.result);
+                                e.target.result.reportDateRange = orgUnitFactory.getOrgUnitReportDateRange(e.target.result);
                                 e.target.result.id = uid;
                                 e.target.result.displayName = e.target.result.n;
                                 delete(e.target.result.n);
@@ -3320,7 +3343,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                             displayName: response.data.displayName,
                                             cdate: response.data.closedDate,
                                             odate: response.data.openingDate,
-                                            closedStatus: getOrgUnitClosedStatus(response.data)
+                                            closedStatus: getOrgUnitClosedStatus(response.data),
+                                            reportDateRange: orgUnitFactory.getOrgUnitReportDateRange(response.data)
                                         });
                                     }
                                 });
@@ -3335,6 +3359,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     deferred.reject();
                 };
             }
+
+
             function getOrgUnitClosedStatus(ou){
                 var closed = false;
                 if( ou ){
