@@ -3277,20 +3277,18 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             return def.promise;
         },
         getOrgUnitReportDateRange: function(orgUnit) {
-            var reportDateRange = { maxDate: '0', minDate: ''};
+            var reportDateRange = { maxDate: DateUtils.getToday(), minDate: ''};
             var cdate = orgUnit.cdate ? orgUnit.cdate : orgUnit.closedDate ? orgUnit.closedDate.substring(0,10) : null;
             var odate = orgUnit.odate ? orgUnit.odate : orgUnit.openingDate ? orgUnit.openingDate.substring(0,10) : null;
             if (odate) {
                 /*If the orgunit has an opening date, then it is taken as the min-date otherwise the min-date is open*/
-                reportDateRange.minDate = odate;
+                reportDateRange.minDate = DateUtils.formatFromApiToUser(odate);
             }
             if (cdate) {
                 /*If closed date of the org-unit is later than today then today's date is taken as the max-date otherwise
                 * the closed date of the org-unit is taken as the max-date*/
-                if (DateUtils.isAfterToday(cdate)) {
-                    reportDateRange.maxDate = DateUtils.getToday();
-                } else {
-                    reportDateRange.maxDate = cdate;
+                if (DateUtils.isBeforeToday(cdate)) {
+                    reportDateRange.maxDate = DateUtils.formatFromApiToUser(cdate);
                 }
             }
             return reportDateRange;
