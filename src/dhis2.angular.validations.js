@@ -31,7 +31,7 @@ angular.module("d2Directives")
                     };
                 }
                 else if(numberType === 'INTEGER'){
-                    ngModel.$validators.int = function(value) {
+                    ngModel.$validators.integer = function(value) {
                     	value = value === 0 ? value.toString(): value;
                         return value === 'null' || !value ? !isRequired : dhis2.validation.isInt(value);
                     };
