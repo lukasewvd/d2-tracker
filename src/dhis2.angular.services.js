@@ -336,6 +336,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             age.days = now.diff(dob, 'days');
             
             return age;
+        },
+        getDateFromUTCString: function(utcDateTimeString) {
+            var calendarSetting = CalendarService.getSetting();
+            return moment(utcDateTimeString).format(calendarSetting.momentFormat);
         }
     };
 })
@@ -3278,8 +3282,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         },
         getOrgUnitReportDateRange: function(orgUnit) {
             var reportDateRange = { maxDate: DateUtils.getToday(), minDate: ''};
-            var cdate = orgUnit.cdate ? orgUnit.cdate : orgUnit.closedDate ? orgUnit.closedDate.substring(0,10) : null;
-            var odate = orgUnit.odate ? orgUnit.odate : orgUnit.openingDate ? orgUnit.openingDate.substring(0,10) : null;
+            var cdate = orgUnit.cdate ? orgUnit.cdate : orgUnit.closedDate ? DateUtils.getDateFromUTCString(orgUnit.closedDate) : null;
+            var odate = orgUnit.odate ? orgUnit.odate : orgUnit.openingDate ? DateUtils.getDateFromUTCString(orgUnit.openingDate) : null;
             if (odate) {
                 /*If the orgunit has an opening date, then it is taken as the min-date otherwise the min-date is open*/
                 reportDateRange.minDate = DateUtils.formatFromApiToUser(odate);
