@@ -414,9 +414,6 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         val = parseInt(val);
                     }
                 }
-                else{
-                    NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("value_must_be_number") + ':  ' + val + ' (' + obj.displayName + ')');
-                }
             }
             if(val && obj.optionSetValue && obj.optionSet && obj.optionSet.id && optionSets[obj.optionSet.id] && optionSets[obj.optionSet.id].options  ){
                 if(destination === 'USER'){

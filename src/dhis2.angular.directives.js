@@ -367,15 +367,13 @@ var d2Directives = angular.module('d2Directives', [])
                 FileService.upload(element[0].files[0]).then(function(data){
 
                     if(data && data.status === 'OK' && data.response && data.response.fileResource && data.response.fileResource.id && data.response.fileResource.name){
-
                         scope.d2FileInput[de] = data.response.fileResource.id;
                         scope.d2FileInputCurrentName[de] = data.response.fileResource.name;
+                        if(!scope.d2FileInputName[scope.d2FileInput.event]){
+                            scope.d2FileInputName[scope.d2FileInput.event] = {};
+                        }
+                        scope.d2FileInputName[scope.d2FileInput.event][de] = data.response.fileResource.name;
                         if( update ){
-                            if(!scope.d2FileInputName[scope.d2FileInput.event]){
-                                scope.d2FileInputName[scope.d2FileInput.event] = {};
-                            }
-                            scope.d2FileInputName[scope.d2FileInput.event][de] = data.response.fileResource.name;
-
                             var updatedSingleValueEvent = {event: scope.d2FileInput.event, dataValues: [{value: data.response.fileResource.id, dataElement:  de}]};
                             var updatedFullValueEvent = DHIS2EventService.reconstructEvent(scope.d2FileInput, scope.d2FileInputPs.programStageDataElements);
                             DHIS2EventFactory.updateForSingleValue(updatedSingleValueEvent, updatedFullValueEvent).then(function(data){
