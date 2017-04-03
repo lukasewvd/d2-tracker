@@ -621,6 +621,11 @@ var d2Directives = angular.module('d2Directives', [])
         },
         controller: function($scope){
             
+            $scope.$watch('d2Object',function(newObj, oldObj){                
+                $scope.d2Object = newObj;
+                $scope.model = {radio: $scope.d2Object[$scope.id] ? $scope.d2Object[$scope.id] : null};
+            });
+
             $scope.model = {radio: $scope.d2Object[$scope.id] ? $scope.d2Object[$scope.id] : null};
             
             $scope.saveValue = function( value ){
@@ -716,15 +721,24 @@ var d2Directives = angular.module('d2Directives', [])
             if( !$scope.d2OrgUnitNames ){
                 $scope.d2OrgUnitNames = {};
             }
+
+            $scope.$watch('d2Object',function(newObj, oldObj){       
+                $scope.d2Object = newObj;
+                fetchOu();
+            });
             
-            if( $scope.id && $scope.d2Object[$scope.id] ){                
-                OrgUnitFactory.getFromStoreOrServer($scope.d2Object[$scope.id]).then(function (response) {
-                    if(response && response.n) {
-                        $scope.d2OrgunitNames[$scope.d2Object[$scope.id]] = response.n;
-                    }
-                });
+            function fetchOu(){
+                if( $scope.id && $scope.d2Object[$scope.id] ){                
+                    OrgUnitFactory.getFromStoreOrServer($scope.d2Object[$scope.id]).then(function (response) {
+                        if(response && response.n) {
+                            $scope.d2OrgunitNames[$scope.d2Object[$scope.id]] = response.n;
+                        }
+                    });
+                }
             }
             
+            fetchOu();
+
             $scope.showOrgUnitTree = function( dataElementId ){
                 
                 var modalInstance = $modal.open({
@@ -779,7 +793,14 @@ var d2Directives = angular.module('d2Directives', [])
             d2LngSaved: '=',
             d2CoordinateFormat: '='
         },
-        controller: function($scope, $modal, $filter, $translate, DHIS2COORDINATESIZE, NotificationService){            
+        controller: function($scope, $modal, $filter, $translate, DHIS2COORDINATESIZE, NotificationService){
+
+            $scope.$watch('d2Object',function(newObj, oldObj){       
+                $scope.d2Object = newObj;
+                $scope.coordinateObject = angular.copy( $scope.d2Object );
+                processCoordinate();
+            });
+
             $scope.coordinateObject = angular.copy( $scope.d2Object );
             
             function processCoordinate(){
