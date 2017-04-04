@@ -621,9 +621,11 @@ var d2Directives = angular.module('d2Directives', [])
         },
         controller: function($scope){
             
-            $scope.$watch('d2Object',function(newObj, oldObj){                
-                $scope.d2Object = newObj;
-                $scope.model = {radio: $scope.d2Object[$scope.id] ? $scope.d2Object[$scope.id] : null};
+            $scope.$watch('d2Object',function(newObj, oldObj){
+                if( angular.isObject(newObj) ){
+                    $scope.d2Object = newObj;
+                    $scope.model = {radio: $scope.d2Object[$scope.id] ? $scope.d2Object[$scope.id] : null};
+                }                
             });
 
             $scope.model = {radio: $scope.d2Object[$scope.id] ? $scope.d2Object[$scope.id] : null};
@@ -722,9 +724,11 @@ var d2Directives = angular.module('d2Directives', [])
                 $scope.d2OrgUnitNames = {};
             }
 
-            $scope.$watch('d2Object',function(newObj, oldObj){       
-                $scope.d2Object = newObj;
-                fetchOu();
+            $scope.$watch('d2Object',function(newObj, oldObj){
+                if( angular.isObject(newObj) ){
+                    $scope.d2Object = newObj;
+                    fetchOu();
+                }
             });
             
             function fetchOu(){
@@ -795,10 +799,12 @@ var d2Directives = angular.module('d2Directives', [])
         },
         controller: function($scope, $modal, $filter, $translate, DHIS2COORDINATESIZE, NotificationService){
 
-            $scope.$watch('d2Object',function(newObj, oldObj){       
-                $scope.d2Object = newObj;
-                $scope.coordinateObject = angular.copy( $scope.d2Object );
-                processCoordinate();
+            $scope.$watch('d2Object',function(newObj, oldObj){
+                if( angular.isObject(newObj) ){
+                    $scope.d2Object = newObj;
+                    $scope.coordinateObject = angular.copy( $scope.d2Object );
+                    processCoordinate();
+                }
             });
 
             $scope.coordinateObject = angular.copy( $scope.d2Object );

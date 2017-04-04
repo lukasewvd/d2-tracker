@@ -563,10 +563,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 
                             if (prStDe && prStDe.dataElement && prStDe.dataElement.valueType) {
 
+                                var disableInputField = 'model.editingDisabled || isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed ';
                                 var commonInputFieldProperty = this.getAttributesAsString(attributes) +
                                     ' ng-model="currentEvent.' + fieldId + '" ' +
                                     ' input-field-id="' + fieldId + '"' +
-                                    ' ng-disabled="model.editingDisabled || isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed "'+
+                                    ' ng-disabled="' + disableInputField + '"' + 
                                     ' ng-required="{{prStDes.' + fieldId + '.compulsory}}" ';
 
                                 
@@ -592,7 +593,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                         prStDe.dataElement.valueType === "INTEGER_ZERO_OR_POSITIVE") {
                                         newInputField = '<span class="hideInPrint"><input type="number" ' +
                                             ' d2-number-validator ' +
-                                            ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
+                                            //' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
+                                            ' ng-class="getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)" ' +
                                             ' number-type="' + prStDe.dataElement.valueType + '" ' +
                                             ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + 'ng-disabled="model.editingDisabled"></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
@@ -600,7 +602,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                     else if (prStDe.dataElement.valueType === "BOOLEAN") {
                                     	newInputField = '<span class="hideInPrint"><d2-radio-button ' +
                                                                     ' dh-required="prStDes.' + fieldId + '.compulsory" ' +
-                                                                    ' dh-disabled="model.editingDisabled || isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
+                                                                    ' dh-disabled="' + disableInputField + '"' +
                                                                     ' dh-value="currentEvent.' + fieldId + '" ' +
                                                                     ' dh-name="foo" ' +
                                                                     ' dh-current-element="currentElement" ' +
@@ -617,8 +619,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                         var maxDate = prStDe.allowFutureDate ? '' : 0;
                                         newInputField = '<span class="hideInPrint"><input type="text" ' +
                                             ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
-                                            ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
-                                            ' ng-disabled="model.editingDisabled"'+
+                                            ' ng-class="getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)" ' +
                                             ' d2-date ' +
                                             ' d2-date-validator ' +
                                             ' max-date="' + maxDate + '"' +
@@ -627,19 +628,19 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                             commonInputFieldProperty + ' ></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "TRUE_ONLY") {
-                                        newInputField = '<span class="hideInPrint"><input type="checkbox" ng-disabled="model.editingDisabled"' +
-                                            ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
+                                        newInputField = '<span class="hideInPrint"><input type="checkbox" ' +
+                                            ' ng-class="getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)" ' +
                                             ' ng-change="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + ' ></span><span class="not-for-screen"><input type="checkbox" ng-checked={{currentEvent.' + fieldId + '}}></span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "LONG_TEXT") {
-                                        newInputField = '<span class="hideInPrint"><textarea ng-disabled="model.editingDisabled" row="3" ' +
-                                            ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
+                                        newInputField = '<span class="hideInPrint"><textarea row="3" ' +
+                                            ' ng-class="getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)" ' +
                                             ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + '></textarea></span><span class="not-for-screen"><textarea row="3" value={{currentEvent.' + fieldId + '}}></textarea></span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "FILE_RESOURCE") {
-                                        newInputField = '<span ng-disabled="model.editingDisabled" class="input-group hideInPrint">\n\
+                                        newInputField = '<span ng-disabled="' + disableInputField + '" class="input-group hideInPrint">\n\
                                                         <span ng-if="currentEvent.' + fieldId + '">\n\
                                                             <a href ng-click="downloadFile(null, \'' + fieldId + '\', null)" title="fileNames[currentEvent.event][' + fieldId + ']" >{{fileNames[currentEvent.event][' + fieldId + '].length > 20 ? fileNames[currentEvent.event][' + fieldId + '].substring(0,20).concat(\'...\') : fileNames[currentEvent.event][' + fieldId + ']}}</a>\n\
                                                         </span>\n\
@@ -669,8 +670,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                     	newInputField = '<span class="hideInPrint"><d2-age ' +
                                     							' id=" ' + fieldId + '" ' +
 						                                        ' d2-object="currentEvent" ' + 
-						                                        ' d2-disabled="model.editingDisabled || isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
-                                                                                        ' d2-required="prStDes.' + fieldId + '.compulsory" ' +
+						                                        ' d2-disabled="' + disableInputField + '"' +
+                                                                ' d2-required="prStDes.' + fieldId + '.compulsory" ' +
 						                                        ' d2-function="saveDatavalue(arg1)" ' +						                                        
 						                                        ' d2-function-param-text="prStDes.' + fieldId + '" >' +
 						                                '</d2-age></span>' +
@@ -683,8 +684,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                     							' id=" ' + fieldId + '" ' +
 						                                        ' d2-object="currentEvent" ' + 
 						                                        ' d2-coordinate-format="\'TEXT\'" ' + 
-						                                        ' d2-disabled="model.editingDisabled || isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
-                                                                                        ' d2-required="prStDes.' + fieldId + '.compulsory" ' +
+						                                        ' d2-disabled="'+ disableInputField + '"' +
+                                                                ' d2-required="prStDes.' + fieldId + '.compulsory" ' +
 						                                        ' d2-function="saveDatavalue(arg1)" ' +						                                        
 						                                        ' d2-function-param-text="prStDes.' + fieldId + '" ' +
 						                                        ' d2-function-param-coordinate="\'LATLNG\'" > ' +
@@ -699,9 +700,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 					                                            ' id="{{prStDes.' + fieldId + '.dataElement.id}}" ' +
 					                                            ' d2-object="currentEvent" ' +
 					                                            ' d2-value="currentEvent.' + fieldId + '" ' +
-					                                            ' d2-disabled="model.editingDisabled || isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
+					                                            ' d2-disabled="'+ disableInputField + '"' +
 					                                            ' d2-required="prStDes.' + fieldId + '.compulsory" ' +
-                                                                                    ' d2-orgunit-names="orgUnitNames" ' +
+                                                                ' d2-orgunit-names="orgUnitNames" ' +
 					                                            ' d2-function="saveDatavalue(prStDes.' + fieldId + ', currentEvent, value )" >' +
 					                                    ' </d2-org-unit-tree></span>' +
 					                                    '<span class="not-for-screen">' +
@@ -709,21 +710,21 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                     	'</span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "PHONE_NUMBER") {
-                                        newInputField = '<span class="hideInPrint"><input ng-disabled="model.editingDisabled" type="text" ' +
-                                            ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
+                                        newInputField = '<span class="hideInPrint"><input type="text" ' +
+                                            ' ng-class="getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)" ' +
                                             ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + '></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "EMAIL") {
-                                        newInputField = '<span class="hideInPrint"><input style="width:100%;" type="email" ng-disabled="model.editingDisabled"' +
+                                        newInputField = '<span class="hideInPrint"><input style="width:100%;" type="email"' +
                                             ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')" ' +
                                             commonInputFieldProperty +
                                             ' ng-model="currentEvent.' + fieldId + '">' +
                                             '<span class="not-for-screen"><input type="email" value={{currentEvent.' + fieldId + '}}></span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "TEXT") {
-                                        newInputField = '<span class="hideInPrint"><input ng-disabled="model.editingDisabled" type="text" ' +
-                                            ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
+                                        newInputField = '<span class="hideInPrint"><input type="text" ' +
+                                            ' ng-class="getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)" ' +
                                             ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + '></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
                                     }
@@ -790,6 +791,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         if (att) {
                             var attMaxDate = att.allowFutureDate ? '' : 0;
                             var isTrackerAssociate = att.valueType === 'TRACKER_ASSOCIATE';
+                            var disableInputField = 'selectedOrgUnit.closedStatus || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ '|| attributesById.' + attId + '.generated"';
                             var commonInputFieldProperty = ' name="' + fieldName + '"' +
                                 ' element-id="' + i + '"' +
                                 this.getAttributesAsString(attributes) +
@@ -798,14 +800,14 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' attribute-data="attributesById.' + attId + '" ' +
                                 ' selected-program-id="selectedProgram.id" ' +
                                 ' selected-tei-id="selectedTei.trackedEntityInstance" ' +
-                                ' ng-disabled="selectedOrgUnit.closedStatus || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ '|| attributesById.' + attId + '.generated"' +
+                                ' ng-disabled="' + disableInputField + '"'+ 
                                 ' d2-attribute-validator ' +
                                 ' ng-required=" ' + att.mandatory + '" ';
 
                             //check if attribute has optionset
                             if (att.optionSetValue) {
                                 var optionSetId = att.optionSet.id;
-                                newInputField = '<span class="hideInPrint"><ui-select style="width:100%;" ng-disabled="selectedOrgUnit.closedStatus" theme="select2" ' + commonInputFieldProperty + '  on-select="teiValueUpdated(selectedTei,\'' + attId + '\')" >' +
+                                newInputField = '<span class="hideInPrint"><ui-select style="width:100%;" theme="select2" ' + commonInputFieldProperty + '  on-select="teiValueUpdated(selectedTei,\'' + attId + '\')" >' +
                                     '<ui-select-match allow-clear="true" placeholder="' + $translate.instant('select_or_search') + '">{{$select.selected.displayName || $select.selected}}</ui-select-match>' +
                                     '<ui-select-choices ' +
                                     'repeat="option.displayName as option in optionSets.' + optionSetId + '.options | filter: $select.search | limitTo:maxOptionSize">' +
@@ -821,7 +823,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 		att.valueType === "INTEGER_POSITIVE" ||
                                 		att.valueType === "INTEGER_NEGATIVE" ||
                                 		att.valueType === "INTEGER_ZERO_OR_POSITIVE" ) {
-                                    newInputField = '<span class="hideInPrint"><input style="width:100%;" ng-disabled="selectedOrgUnit.closedStatus"  type="number"' +
+                                    newInputField = '<span class="hideInPrint"><input style="width:100%;" type="number"' +
                                         ' d2-number-validator ' +
                                         ' number-type="' + att.valueType + '" ' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
@@ -830,7 +832,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 else if (att.valueType === "BOOLEAN") {
                                 	newInputField = '<span class="hideInPrint"><d2-radio-button ' +
                                                             ' dh-required=" ' + (att.mandatory || att.unique) + '" ' +
-                                                            ' dh-disabled="selectedOrgUnit.closedStatus || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate + '"' +
+                                                            ' dh-disabled="'+ disableInputField + '"' +
                                                             ' dh-value="selectedTei.' + attId + '" ' +
                                                             ' dh-name="foo" ' +
                                                             ' dh-current-element="currentElement" ' +
@@ -844,7 +846,6 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 }
                                 else if (att.valueType === "DATE") {
                                     newInputField = '<span class="hideInPrint"><input  style="width:100%;" type="text"' +
-                                        ' ng-disabled="selectedOrgUnit.closedStatus"'+
                                         ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                         ' max-date=" ' + attMaxDate + ' " ' +
                                         ' d2-date' +
@@ -854,13 +855,13 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                         '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
                                 }
                                 else if (att.valueType === "TRUE_ONLY") {
-                                    newInputField = '<span class="hideInPrint"><input style="width:100%;" ng-disabled="selectedOrgUnit.closedStatus" type="checkbox" ' +
+                                    newInputField = '<span class="hideInPrint"><input style="width:100%;" type="checkbox" ' +
                                         ' ng-change="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' ></span>' +
                                         '<span class="not-for-screen"><input type="checkbox" ng-checked={{selectedTei.' + attId + '}}></span>';
                                 }
                                 else if (att.valueType === "EMAIL") {
-                                    newInputField = '<span class="hideInPrint"><input style="width:100%;" type="email" ng-disabled="selectedOrgUnit.closedStatus"' +
+                                    newInputField = '<span class="hideInPrint"><input style="width:100%;" type="email"' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' >' +
                                         '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
@@ -873,8 +874,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                                         '<span class="input-group-btn input-group-btn-no-width"> ' +
                                                             '<button class="btn btn-grp default-btn-height" type="button" ' + 
                                                                 ' title="{{\'add\' | translate}} {{attributesById.' + attId + '.displayName}}" ' +
-                                                                ' ng-if="!selectedTei.' + attId + '" ' +
-                                                                ' ng-disabled="selectedOrgUnit.closedStatus"'+
+                                                                ' ng-if="!selectedTei.' + attId + '" ' +                                                                
                                                                 ' ng-class="{true: \'disable-clicks\'} [editingDisabled]" ' +
                                                                 ' ng-click="getTrackerAssociate(attributesById.' + attId + ', selectedTei.' + attId + ')" >' +
                                                                 '<i class="fa fa-external-link"></i> ' +
@@ -882,7 +882,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                             '<button class="btn btn-grp default-btn-height" type="button" ' + 
                                                                 ' title="{{\'remove\' | translate}} {{attributesById.' + attId + '.displayName}}" ' +
                                                                 ' ng-if="selectedTei.' + attId + '" ' +
-                                                                ' ng-disabled="selectedOrgUnit.closedStatus"'+
+                                                                ' ng-disabled="' + disableInputField + '"'+
                                                                 ' ng-class="{true: \'disable-clicks\'} [editingDisabled]" ' +
                                                                 ' ng-click="selectedTei.' + attId + ' = null" >' +
                                                                 '<i class="fa fa-trash-o"></i> ' +
@@ -893,23 +893,23 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 }
                                 else if (att.valueType === "AGE") {
                                 	newInputField = '<span class="hideInPrint"><d2-age ' +
-                                                                                    ' id=" ' + attId + '" ' +
+                                                            ' id=" ' + attId + '" ' +
 						                                    ' d2-object="selectedTei" ' +  						                                    
 						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
-                                                                                    ' d2-disabled="selectedOrgUnit.closedStatus || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated" >' +
-						                            '</d2-age></span>'+
-                                                                            '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
+                                                            ' d2-disabled="'+ disableInputField +'" >' +
+						                                '</d2-age></span>'+
+                                                    '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
                                 }
                                 else if (att.valueType === "COORDINATE") {
                                 	newInputField = '<span class="hideInPrint"><d2-map ' +
-                                                                                    ' id=" ' + attId + '" ' +
+                                                            ' id=" ' + attId + '" ' +
 						                                    ' d2-object="selectedTei" ' +  
 						                                    ' d2-value="selectedTei.' + attId + '" ' +
 						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
-					                                        ' d2-disabled="selectedOrgUnit.closedStatus || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
+					                                        ' d2-disabled="'+ disableInputField + '"' +
 						                                    ' d2-coordinate-format="\'TEXT\'" > ' +
 						                            '</d2-map></span>'+
-                                                                            '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
+                                                    '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
                                 }
                                 else if (att.valueType === "ORGANISATION_UNIT") {
                                 	newInputField = '<span class="hideInPrint"><d2-org-unit-tree ' +
@@ -918,24 +918,24 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 				                                            ' d2-object="selectedTei" ' +  
 						                                    ' d2-value="selectedTei.' + attId + '" ' +
 						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
-					                                        ' d2-disabled="selectedOrgUnit.closedStatus || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
-                                                                                ' d2-orgunit-names="orgUnitNames" ' +
+					                                        ' d2-disabled="'+ disableInputField + '"' +
+                                                            ' d2-orgunit-names="orgUnitNames" ' +
 					                                        ' d2-function="teiValueUpdated()" >' +
-				                                    ' </d2-org-unit-tree></span>'+
-                                                                    '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
+				                                        ' </d2-org-unit-tree></span>'+
+                                                    '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
                                 }
                                 else if (att.valueType === "LONG_TEXT") {
-                                    newInputField = '<span><textarea style="width:100%;" ng-disabled="selectedOrgUnit.closedStatus" row ="3" ' +
+                                    newInputField = '<span><textarea style="width:100%;" row ="3" ' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' ></textarea></span>';
                                 }
                                 else if (att.valueType === "TEXT") {
-                                    newInputField = '<input type="text" style="width:100%;" ng-disabled="selectedOrgUnit.closedStatus"' +
+                                    newInputField = '<input type="text" style="width:100%;"' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + '>';
                                 }
                                 else if (att.valueType === "PHONE_NUMBER") {
-                                    newInputField = '<input type="text" style="width:100%;" ng-disabled="selectedOrgUnit.closedStatus"' +
+                                    newInputField = '<input type="text" style="width:100%;"' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + '>';
                                 }
@@ -2839,7 +2839,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             }
                             else {
                                 //TODO: Alerts is going to be replaced with a proper display mecanism.
-                                alert(attributesById[effect.trackedEntityAttribute.id].displayName + " was blanked out and hidden by your last action");
+                                alert(attributesById[effect.trackedEntityAttribute.id].displayName + " - was blanked out and hidden by your last action");
                             }
 
                             //Blank out the value:
@@ -2904,11 +2904,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             }
                             else {
                                 //TODO: Alerts is going to be replaced with a proper display mecanism.
-                                alert(prStDes[effect.dataElement.id].dataElement.formName + "Was blanked out and hidden by your last action");
+                                alert(prStDes[effect.dataElement.id].dataElement.displayFormName + " - was blanked out and hidden by your last action");
                             }
 
                         }
-                        
+                        currentEvent[effect.dataElement.id] = "";
                         hiddenFields[effect.dataElement.id] = true;
                     }
                     else if(effect.action === "HIDESECTION") {
