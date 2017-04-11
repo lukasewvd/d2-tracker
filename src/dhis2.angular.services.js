@@ -1846,7 +1846,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 
                 if(angular.isDefined(variablesHash[variablepresent])) {
                     //Replace all occurrences of the variable name(hence using regex replacement):
-                    expression = expression.replace(new RegExp( variablesHash[variablepresent].variablePrefix + "\{" + variablepresent + "\}", 'g'),
+                    expression = expression.replace(new RegExp( variablesHash[variablepresent].variablePrefix + "\\{" + variablepresent + "\\}", 'g'),
                         variablesHash[variablepresent].variableValue);
                 }
                 else {
