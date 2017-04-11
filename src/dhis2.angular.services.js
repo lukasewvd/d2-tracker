@@ -1839,7 +1839,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         //Check if the expression contains program rule variables at all(any curly braces):
         if(expression.indexOf('{') !== -1) {
             //Find every variable name in the expression;
-            var variablespresent = expression.match(/[A#CV]{\w+.?\w*}/g);
+            var variablespresent = expression.match(/[A#CV]\{[\w ]+\.?[\w ]*\}/g);
             //Replace each matched variable:
             angular.forEach(variablespresent, function(variablepresent) {
                 //First strip away any prefix and postfix signs from the variable name:
@@ -1847,11 +1847,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 
                 if(angular.isDefined(variablesHash[variablepresent])) {
                     //Replace all occurrences of the variable name(hence using regex replacement):
-                    expression = expression.replace(new RegExp( variablesHash[variablepresent].variablePrefix + "{" + variablepresent + "}", 'g'),
+                    expression = expression.replace(new RegExp( variablesHash[variablepresent].variablePrefix + "\{" + variablepresent + "\}", 'g'),
                         variablesHash[variablepresent].variableValue);
                 }
                 else {
-                    $log.warn("Expression " + expression + " conains variable " + variablepresent
+                    $log.warn("Expression " + expression + " contains variable " + variablepresent
                         + " - but this variable is not defined." );
                 }
             });
