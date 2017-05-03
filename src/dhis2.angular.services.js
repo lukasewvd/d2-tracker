@@ -1561,13 +1561,6 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         //First clean away single or double quotation marks at the start and end of the variable name.
         processedValue = $filter('trimquotes')(processedValue);
 
-        if(processedValue === "Yes") {
-            processedValue = true;
-        }
-        if(processedValue === "No") {
-            processedValue = false;
-        }
-
         //Append single quotation marks in case the variable is of text or date type:
         if(valueType === 'LONG_TEXT' || valueType === 'TEXT' || valueType === 'DATE' || valueType === 'OPTION_SET') {
             if(processedValue) {
@@ -1577,7 +1570,13 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             }
         }
         else if(valueType === 'BOOLEAN' || valueType === 'TRUE_ONLY') {
-            if(processedValue && eval(processedValue)) {
+            if(processedValue === "Yes") {
+            processedValue = true;
+            }
+            else if(processedValue === "No") {
+                processedValue = false;
+            }
+            else if(processedValue && eval(processedValue)) {
                 processedValue = true;
             }
             else {
