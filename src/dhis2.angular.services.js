@@ -1624,6 +1624,12 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                             OptionSetService.getCode(optionSets[allDes[dataElementId].dataElement.optionSet.id].options, value)
                                             : value;
     };
+    
+    var geTrackedEntityAttributeValueOrCodeForValueInternal = function(useCodeForOptionSet, value, trackedEntityAttributeId, allTeis, optionSets) {
+        return useCodeForOptionSet && allTeis && allTeis[trackedEntityAttributeId].optionSet ? 
+                                            OptionSetService.getCode(optionSets[allTeis[trackedEntityAttributeId].optionSet.id].options, value)
+                                            : value;
+    };
 
     return {
         processValue: function(value, type) {
@@ -1635,7 +1641,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         getDataElementValueOrCodeForValue: function(useCodeForOptionSet, value, dataElementId, allDes, optionSets) {
             return getDataElementValueOrCodeForValueInternal(useCodeForOptionSet, value, dataElementId, allDes, optionSets);
         },
-        getVariables: function(allProgramRules, executingEvent, evs, allDes, selectedEntity, selectedEnrollment, optionSets) {
+        getTrackedEntityValueOrCodeForValue: function(useCodeForOptionSet, value, trackedEntityAttributeId, allTeis, optionSets) {
+            return geTrackedEntityAttributeValueOrCodeForValueInternal(useCodeForOptionSet, value, trackedEntityAttributeId, allTeis, optionSets);
+        },
+        getVariables: function(allProgramRules, executingEvent, evs, allDes, allTeis, selectedEntity, selectedEnrollment, optionSets) {
 
             var variables = {};
 
@@ -1747,7 +1756,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 //Handling here, but planning refactor in registration so it will always be .valueType
                                 variables = pushVariable(variables, 
                                     programVariable.displayName, 
-                                    programVariable.useCodeForOptionSet ? (angular.isDefined(attribute.optionSetCode) ? attribute.optionSetCode : attribute.value) : attribute.value,
+                                    geTrackedEntityAttributeValueOrCodeForValueInternal(programVariable.useCodeForOptionSet,attribute.value, trackedEntityAttributeId, allTeis, optionSets),
                                     null, 
                                     attribute.type ? attribute.type : attribute.valueType, valueFound, 
                                     'A', 
@@ -1837,7 +1846,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         //Check if the expression contains program rule variables at all(any curly braces):
         if(expression.indexOf('{') !== -1) {
             //Find every variable name in the expression;
-            var variablespresent = expression.match(/[A#CV]\{[\w ]+\.?[\w ]*\}/g);
+            var variablespresent = expression.match(/[A#CV]\{[\w -_.]+}/g);
             //Replace each matched variable:
             angular.forEach(variablespresent, function(variablepresent) {
                 //First strip away any prefix and postfix signs from the variable name:
@@ -2522,7 +2531,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         }
     };
     
-    var internalExecuteRules = function(allProgramRules, executingEvent, evs, allDataElements, selectedEntity, selectedEnrollment, optionSets, flag) {
+    var internalExecuteRules = function(allProgramRules, executingEvent, evs, allDataElements, allTrackedEntityAttributes, selectedEntity, selectedEnrollment, optionSets, flag) {
         if(allProgramRules) {
             var variablesHash = {};
 
@@ -2543,7 +2552,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             //Run rules in priority - lowest number first(priority null is last)
             rules = orderByFilter(rules, 'priority');
 
-            variablesHash = VariableService.getVariables(allProgramRules, executingEvent, evs, allDataElements, selectedEntity, selectedEnrollment, optionSets);
+            variablesHash = VariableService.getVariables(allProgramRules, executingEvent, evs, allDataElements, allTrackedEntityAttributes, selectedEntity, selectedEnrollment, optionSets);
 
             if(angular.isObject(rules) && angular.isArray(rules)){
                 //The program has rules, and we want to run them.
@@ -2811,13 +2820,13 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         }
     };
     return {
-        executeRules: function(allProgramRules, executingEvent, evs, allDataElements, selectedEntity, selectedEnrollment, optionSets, flags) {
-            internalExecuteRules(allProgramRules, executingEvent, evs, allDataElements, selectedEntity, selectedEnrollment, optionSets, flags);
+        executeRules: function(allProgramRules, executingEvent, evs, allDataElements, allTrackedEntityAttributes, selectedEntity, selectedEnrollment, optionSets, flags) {
+            internalExecuteRules(allProgramRules, executingEvent, evs, allDataElements, allTrackedEntityAttributes, selectedEntity, selectedEnrollment, optionSets, flags);
         },
-        loadAndExecuteRulesScope: function(currentEvent, programId, programStageId, programStageDataElements, optionSets, orgUnitId, flags){
+        loadAndExecuteRulesScope: function(currentEvent, programId, programStageId, programStageDataElements, allTrackedEntityAttributes, optionSets, orgUnitId, flags){
             internalGetOrLoadRules(programId).then(function(rules) {
                 internalGetOrLoadScope(currentEvent,programStageId,orgUnitId).then(function(scope) {
-                    internalExecuteRules(rules, currentEvent, scope, programStageDataElements, null, null, optionSets, flags);
+                    internalExecuteRules(rules, currentEvent, scope, programStageDataElements, allTrackedEntityAttributes, null, null, optionSets, flags);
                 });
             });
         },
