@@ -1556,7 +1556,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     };  
 })
 /* service for building variables based on the data in users fields */
-.service('VariableService', function(DateUtils,OptionSetService,$filter,$log){
+.service('VariableService', function(DateUtils,OptionSetService,OrgUnitFactory,$filter,$log){
     var processSingleValue = function(processedValue,valueType){
         //First clean away single or double quotation marks at the start and end of the variable name.
         processedValue = $filter('trimquotes')(processedValue);
@@ -1817,13 +1817,19 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             variables = pushVariable(variables, 'incident_date', selectedEnrollment ? selectedEnrollment.incidentDate : '', null, 'DATE',  selectedEnrollment ? true : false, 'V', '', false);
             variables = pushVariable(variables, 'enrollment_count', selectedEnrollment ? 1 : 0, null, 'INTEGER', true, 'V', '', false);
             variables = pushVariable(variables, 'tei_count', selectedEnrollment ? 1 : 0, null, 'INTEGER', true, 'V', '', false);
-
+            
             //Push all constant values:
             angular.forEach(allProgramRules.constants, function(constant){
                 variables = pushVariable(variables, constant.id, constant.value, null, 'INTEGER', true, 'C', '', false);
             });
 
-            return variables;
+            var orgUnitUid = selectedEnrollment ? selectedEnrollment.orgUnit : executingEvent.orgUnit;
+            var orgUnitCode = '';
+            return OrgUnitFactory.getFromStoreOrServer( orgUnitUid ).then(function (response) {
+                orgUnitCode = response.code;
+                variables = pushVariable(variables, 'orgunit_code', orgUnitCode, null, 'TEXT', orgUnitCode ? true : false, 'V', '', false);
+                return variables;
+            });
         }
     };
 })
@@ -2552,166 +2558,167 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             //Run rules in priority - lowest number first(priority null is last)
             rules = orderByFilter(rules, 'priority');
 
-            variablesHash = VariableService.getVariables(allProgramRules, executingEvent, evs, allDataElements, allTrackedEntityAttributes, selectedEntity, selectedEnrollment, optionSets);
-
-            if(angular.isObject(rules) && angular.isArray(rules)){
-                //The program has rules, and we want to run them.
-                //Prepare repository unless it is already prepared:
-                if(angular.isUndefined( $rootScope.ruleeffects ) ) {
-                    $rootScope.ruleeffects = {};
-                }
-
-                var ruleEffectKey = executingEvent.event ? executingEvent.event : executingEvent;
-                if( executingEvent.event && angular.isUndefined( $rootScope.ruleeffects[ruleEffectKey] )){
-                    $rootScope.ruleeffects[ruleEffectKey] = {};
-                }
-
-                if(!angular.isObject(executingEvent) && angular.isUndefined( $rootScope.ruleeffects[ruleEffectKey] )){
-                    $rootScope.ruleeffects[ruleEffectKey] = {};
-                }
-
-                var updatedEffectsExits = false;
-                var eventsCreated = 0;
-
-                angular.forEach(rules, function(rule) {
-                    var ruleEffective = false;
-
-                    var expression = rule.condition;
-                    //Go through and populate variables with actual values, but only if there actually is any replacements to be made(one or more "$" is present)
-                    if(expression) {
-                        if(expression.indexOf('{') !== -1) {
-                            expression = replaceVariables(expression, variablesHash);
-                        }
-                        
-                        //run expression:
-                        if( runExpression(expression, rule.condition, "rule:" + rule.id, flag, variablesHash) ){
-                            ruleEffective = true;
-                        }
-                    } else {
-                        $log.warn("Rule id:'" + rule.id + "'' and name:'" + rule.name + "' had no condition specified. Please check rule configuration.");
+            VariableService.getVariables(allProgramRules, executingEvent, evs, allDataElements,
+                allTrackedEntityAttributes, selectedEntity, selectedEnrollment, optionSets).then( function(variablesHash) {
+                if(angular.isObject(rules) && angular.isArray(rules)){
+                    //The program has rules, and we want to run them.
+                    //Prepare repository unless it is already prepared:
+                    if(angular.isUndefined( $rootScope.ruleeffects ) ) {
+                        $rootScope.ruleeffects = {};
                     }
 
-                    angular.forEach(rule.programRuleActions, function(action){
-                        //In case the effect-hash is not populated, add entries
-                        if(angular.isUndefined( $rootScope.ruleeffects[ruleEffectKey][action.id] )){
-                            $rootScope.ruleeffects[ruleEffectKey][action.id] =  {
-                                id:action.id,
-                                location:action.location,
-                                action:action.programRuleActionType,
-                                dataElement:action.dataElement,
-                                trackedEntityAttribute:action.trackedEntityAttribute,
-                                programStage: action.programStage,
-                                programIndicator: action.programIndicator,
-                                programStageSection: action.programStageSection && action.programStageSection.id ? action.programStageSection.id : null,
-                                content:action.content,
-                                data:action.data,
-                                ineffect:undefined
-                            };
+                    var ruleEffectKey = executingEvent.event ? executingEvent.event : executingEvent;
+                    if( executingEvent.event && angular.isUndefined( $rootScope.ruleeffects[ruleEffectKey] )){
+                        $rootScope.ruleeffects[ruleEffectKey] = {};
+                    }
+
+                    if(!angular.isObject(executingEvent) && angular.isUndefined( $rootScope.ruleeffects[ruleEffectKey] )){
+                        $rootScope.ruleeffects[ruleEffectKey] = {};
+                    }
+
+                    var updatedEffectsExits = false;
+                    var eventsCreated = 0;
+
+                    angular.forEach(rules, function(rule) {
+                        var ruleEffective = false;
+
+                        var expression = rule.condition;
+                        //Go through and populate variables with actual values, but only if there actually is any replacements to be made(one or more "$" is present)
+                        if(expression) {
+                            if(expression.indexOf('{') !== -1) {
+                                expression = replaceVariables(expression, variablesHash);
+                            }
+
+                            //run expression:
+                            if( runExpression(expression, rule.condition, "rule:" + rule.id, flag, variablesHash) ){
+                                ruleEffective = true;
+                            }
+                        } else {
+                            $log.warn("Rule id:'" + rule.id + "'' and name:'" + rule.name + "' had no condition specified. Please check rule configuration.");
                         }
 
-                        //In case the rule is effective and contains specific data,
-                        //the effect be refreshed from the variables list.
-                        //If the rule is not effective we can skip this step
-                        if(ruleEffective && action.data)
-                        {
-                            //Preserve old data for comparison:
-                            var oldData = $rootScope.ruleeffects[ruleEffectKey][action.id].data;
-
-                            //The key data might be containing a dollar sign denoting that the key data is a variable.
-                            //To make a lookup in variables hash, we must make a lookup without the dollar sign in the variable name
-                            //The first strategy is to make a direct lookup. In case the "data" expression is more complex, we have to do more replacement and evaluation.
-
-                            var nameWithoutBrackets = action.data.replace('#{','').replace('}','');
-                            if(angular.isDefined(variablesHash[nameWithoutBrackets]))
-                            {
-                                //The variable exists, and is replaced with its corresponding value
-                                $rootScope.ruleeffects[ruleEffectKey][action.id].data =
-                                    variablesHash[nameWithoutBrackets].variableValue;
-                            }
-                            else if(action.data.indexOf('{') !== -1 || action.data.indexOf('d2:') !== -1)
-                            {
-                                //Since the value couldnt be looked up directly, and contains a curly brace or a dhis function call,
-                                //the expression was more complex than replacing a single variable value.
-                                //Now we will have to make a thorough replacement and separate evaluation to find the correct value:
-                                $rootScope.ruleeffects[ruleEffectKey][action.id].data = replaceVariables(action.data, variablesHash);
-                                //In a scenario where the data contains a complex expression, evaluate the expression to compile(calculate) the result:
-                                $rootScope.ruleeffects[ruleEffectKey][action.id].data = runExpression($rootScope.ruleeffects[ruleEffectKey][action.id].data, action.data, "action:" + action.id, flag, variablesHash);
-                            }
-
-                            if(oldData !== $rootScope.ruleeffects[ruleEffectKey][action.id].data) {
-                                updatedEffectsExits = true;
-                            }
-                        }
-
-                        //Update the rule effectiveness if it changed in this evaluation;
-                        if($rootScope.ruleeffects[ruleEffectKey][action.id].ineffect !== ruleEffective)
-                        {
-                            //There is a change in the rule outcome, we need to update the effect object.
-                            updatedEffectsExits = true;
-                            $rootScope.ruleeffects[ruleEffectKey][action.id].ineffect = ruleEffective;
-                        }
-
-                        //In case the rule is of type CREATEEVENT, run event creation:
-                        if($rootScope.ruleeffects[ruleEffectKey][action.id].action === "CREATEEVENT" && $rootScope.ruleeffects[ruleEffectKey][action.id].ineffect){
-                            if(evs && evs.byStage){
-                                if($rootScope.ruleeffects[ruleEffectKey][action.id].programStage) {
-                                    var createdNow = performCreateEventAction($rootScope.ruleeffects[ruleEffectKey][action.id], selectedEntity, selectedEnrollment, evs.byStage[$rootScope.ruleeffects[ruleEffectKey][action.id].programStage.id]);
-                                    eventsCreated += createdNow;
-                                } else {
-                                    $log.warn("No programstage defined for CREATEEVENT action: " + action.id);
-                                }
-                            } else {
-                                $log.warn("Events to evaluate for CREATEEVENT action: " + action.id + ". Could it have been triggered at the wrong time or during registration?");
-                            }
-                        }
-                        //In case the rule is of type "assign variable" and the rule is effective,
-                        //the variable data result needs to be applied to the correct variable:
-                        else if($rootScope.ruleeffects[ruleEffectKey][action.id].action === "ASSIGN" && $rootScope.ruleeffects[ruleEffectKey][action.id].ineffect){
-                            //from earlier evaluation, the data portion of the ruleeffect now contains the value of the variable to be assigned.
-                            //the content portion of the ruleeffect defines the name for the variable, when the qualidisers are removed:
-                            var variabletoassign = $rootScope.ruleeffects[ruleEffectKey][action.id].content ?
-                                $rootScope.ruleeffects[ruleEffectKey][action.id].content.replace("#{","").replace("A{","").replace("}","") : null;
-
-                            if(variabletoassign && !angular.isDefined(variablesHash[variabletoassign])){
-                                //If a variable is mentioned in the content of the rule, but does not exist in the variables hash, show a warning:
-                                $log.warn("Variable " + variabletoassign + " was not defined.");
-                            }
-
-                            if(variablesHash[variabletoassign]){
-                                var updatedValue = $rootScope.ruleeffects[ruleEffectKey][action.id].data;
-                                
-                                var valueType = determineValueType(updatedValue);
-                                
-                                if($rootScope.ruleeffects[ruleEffectKey][action.id].dataElement) {
-                                    updatedValue = VariableService.getDataElementValueOrCodeForValue(variablesHash[variabletoassign].useCodeForOptionSet, updatedValue, $rootScope.ruleeffects[ruleEffectKey][action.id].dataElement.id, allDataElements, optionSets);
-                                }
-                                updatedValue = VariableService.processValue(updatedValue, valueType);
-
-                                variablesHash[variabletoassign] = {
-                                    variableValue:updatedValue,
-                                    variableType:valueType,
-                                    hasValue:true,
-                                    variableEventDate:'',
-                                    variablePrefix:variablesHash[variabletoassign].variablePrefix ? variablesHash[variabletoassign].variablePrefix : '#',
-                                    allValues:[updatedValue]
+                        angular.forEach(rule.programRuleActions, function(action){
+                            //In case the effect-hash is not populated, add entries
+                            if(angular.isUndefined( $rootScope.ruleeffects[ruleEffectKey][action.id] )){
+                                $rootScope.ruleeffects[ruleEffectKey][action.id] =  {
+                                    id:action.id,
+                                    location:action.location,
+                                    action:action.programRuleActionType,
+                                    dataElement:action.dataElement,
+                                    trackedEntityAttribute:action.trackedEntityAttribute,
+                                    programStage: action.programStage,
+                                    programIndicator: action.programIndicator,
+                                    programStageSection: action.programStageSection && action.programStageSection.id ? action.programStageSection.id : null,
+                                    content:action.content,
+                                    data:action.data,
+                                    ineffect:undefined
                                 };
-                                
-                                if(variablesHash[variabletoassign].variableValue !== updatedValue) {
-                                    //If the variable was actually updated, we assume that there is an updated ruleeffect somewhere:
+                            }
+
+                            //In case the rule is effective and contains specific data,
+                            //the effect be refreshed from the variables list.
+                            //If the rule is not effective we can skip this step
+                            if(ruleEffective && action.data)
+                            {
+                                //Preserve old data for comparison:
+                                var oldData = $rootScope.ruleeffects[ruleEffectKey][action.id].data;
+
+                                //The key data might be containing a dollar sign denoting that the key data is a variable.
+                                //To make a lookup in variables hash, we must make a lookup without the dollar sign in the variable name
+                                //The first strategy is to make a direct lookup. In case the "data" expression is more complex, we have to do more replacement and evaluation.
+
+                                var nameWithoutBrackets = action.data.replace('#{','').replace('}','');
+                                if(angular.isDefined(variablesHash[nameWithoutBrackets]))
+                                {
+                                    //The variable exists, and is replaced with its corresponding value
+                                    $rootScope.ruleeffects[ruleEffectKey][action.id].data =
+                                        variablesHash[nameWithoutBrackets].variableValue;
+                                }
+                                else if(action.data.indexOf('{') !== -1 || action.data.indexOf('d2:') !== -1)
+                                {
+                                    //Since the value couldnt be looked up directly, and contains a curly brace or a dhis function call,
+                                    //the expression was more complex than replacing a single variable value.
+                                    //Now we will have to make a thorough replacement and separate evaluation to find the correct value:
+                                    $rootScope.ruleeffects[ruleEffectKey][action.id].data = replaceVariables(action.data, variablesHash);
+                                    //In a scenario where the data contains a complex expression, evaluate the expression to compile(calculate) the result:
+                                    $rootScope.ruleeffects[ruleEffectKey][action.id].data = runExpression($rootScope.ruleeffects[ruleEffectKey][action.id].data, action.data, "action:" + action.id, flag, variablesHash);
+                                }
+
+                                if(oldData !== $rootScope.ruleeffects[ruleEffectKey][action.id].data) {
                                     updatedEffectsExits = true;
                                 }
                             }
-                        }
+
+                            //Update the rule effectiveness if it changed in this evaluation;
+                            if($rootScope.ruleeffects[ruleEffectKey][action.id].ineffect !== ruleEffective)
+                            {
+                                //There is a change in the rule outcome, we need to update the effect object.
+                                updatedEffectsExits = true;
+                                $rootScope.ruleeffects[ruleEffectKey][action.id].ineffect = ruleEffective;
+                            }
+
+                            //In case the rule is of type CREATEEVENT, run event creation:
+                            if($rootScope.ruleeffects[ruleEffectKey][action.id].action === "CREATEEVENT" && $rootScope.ruleeffects[ruleEffectKey][action.id].ineffect){
+                                if(evs && evs.byStage){
+                                    if($rootScope.ruleeffects[ruleEffectKey][action.id].programStage) {
+                                        var createdNow = performCreateEventAction($rootScope.ruleeffects[ruleEffectKey][action.id], selectedEntity, selectedEnrollment, evs.byStage[$rootScope.ruleeffects[ruleEffectKey][action.id].programStage.id]);
+                                        eventsCreated += createdNow;
+                                    } else {
+                                        $log.warn("No programstage defined for CREATEEVENT action: " + action.id);
+                                    }
+                                } else {
+                                    $log.warn("Events to evaluate for CREATEEVENT action: " + action.id + ". Could it have been triggered at the wrong time or during registration?");
+                                }
+                            }
+                            //In case the rule is of type "assign variable" and the rule is effective,
+                            //the variable data result needs to be applied to the correct variable:
+                            else if($rootScope.ruleeffects[ruleEffectKey][action.id].action === "ASSIGN" && $rootScope.ruleeffects[ruleEffectKey][action.id].ineffect){
+                                //from earlier evaluation, the data portion of the ruleeffect now contains the value of the variable to be assigned.
+                                //the content portion of the ruleeffect defines the name for the variable, when the qualidisers are removed:
+                                var variabletoassign = $rootScope.ruleeffects[ruleEffectKey][action.id].content ?
+                                    $rootScope.ruleeffects[ruleEffectKey][action.id].content.replace("#{","").replace("A{","").replace("}","") : null;
+
+                                if(variabletoassign && !angular.isDefined(variablesHash[variabletoassign])){
+                                    //If a variable is mentioned in the content of the rule, but does not exist in the variables hash, show a warning:
+                                    $log.warn("Variable " + variabletoassign + " was not defined.");
+                                }
+
+                                if(variablesHash[variabletoassign]){
+                                    var updatedValue = $rootScope.ruleeffects[ruleEffectKey][action.id].data;
+
+                                    var valueType = determineValueType(updatedValue);
+
+                                    if($rootScope.ruleeffects[ruleEffectKey][action.id].dataElement) {
+                                        updatedValue = VariableService.getDataElementValueOrCodeForValue(variablesHash[variabletoassign].useCodeForOptionSet, updatedValue, $rootScope.ruleeffects[ruleEffectKey][action.id].dataElement.id, allDataElements, optionSets);
+                                    }
+                                    updatedValue = VariableService.processValue(updatedValue, valueType);
+
+                                    variablesHash[variabletoassign] = {
+                                        variableValue:updatedValue,
+                                        variableType:valueType,
+                                        hasValue:true,
+                                        variableEventDate:'',
+                                        variablePrefix:variablesHash[variabletoassign].variablePrefix ? variablesHash[variabletoassign].variablePrefix : '#',
+                                        allValues:[updatedValue]
+                                    };
+
+                                    if(variablesHash[variabletoassign].variableValue !== updatedValue) {
+                                        //If the variable was actually updated, we assume that there is an updated ruleeffect somewhere:
+                                        updatedEffectsExits = true;
+                                    }
+                                }
+                            }
+                        });
                     });
-                });
 
-                //Broadcast rules finished if there was any actual changes to the event.
-                if(updatedEffectsExits){
-                    $rootScope.$broadcast("ruleeffectsupdated", { event: ruleEffectKey, callerId:flag.callerId, eventsCreated:eventsCreated });
+                    //Broadcast rules finished if there was any actual changes to the event.
+                    if(updatedEffectsExits){
+                        $rootScope.$broadcast("ruleeffectsupdated", { event: ruleEffectKey, callerId:flag.callerId, eventsCreated:eventsCreated });
+                    }
                 }
-            }
 
-            return true;
+                return true;
+            });
         }
     };
     
@@ -3342,13 +3349,14 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 deferred.resolve(e.target.result);
                             }
                             else{
-                                $http.get( DHIS2URL + '/organisationUnits/'+ uid + '.json?fields=id,displayName,closedDate,openingDate' ).then(function(response){
+                                $http.get( DHIS2URL + '/organisationUnits/'+ uid + '.json?fields=id,displayName,code,closedDate,openingDate' ).then(function(response){
                                     if( response && response.data ){
                                         deferred.resolve({
                                             id: response.data.id,
                                             displayName: response.data.displayName,
                                             cdate: response.data.closedDate,
                                             odate: response.data.openingDate,
+                                            code: response.data.code,
                                             closedStatus: getOrgUnitClosedStatus(response.data),
                                             reportDateRange: orgUnitFactory.getOrgUnitReportDateRange(response.data)
                                         });
