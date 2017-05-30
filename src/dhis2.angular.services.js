@@ -1825,7 +1825,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 
             var orgUnitUid = selectedEnrollment ? selectedEnrollment.orgUnit : executingEvent.orgUnit;
             var orgUnitCode = '';
-            return OrgUnitFactory.getFromStoreOrServer( orgUnitUid ).then(function (response) {
+            return OrgUnitFactory.getOrgUnit( orgUnitUid ).then(function (response) {
                 orgUnitCode = response.code;
                 variables = pushVariable(variables, 'orgunit_code', orgUnitCode, null, 'TEXT', orgUnitCode ? true : false, 'V', '', false);
                 return variables;
@@ -3289,6 +3289,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 this.get(uid).then(function (response) {
                     def.resolve( response ? response : null );
                 });
+            }
+            else {
+                def.resolve(null);
             }
             return def.promise;
         },
