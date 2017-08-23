@@ -161,3 +161,30 @@ var d2Filters = angular.module('d2Filters', [])
     };
 })
 
+.filter('categoryOptionFilter', function(){
+    
+    return function( categoryOptions, selectedOrgUnit ){
+        
+        var _categoryOptions = [];
+        
+        if( categoryOptions && selectedOrgUnit && selectedOrgUnit.id ){
+            
+            angular.forEach(categoryOptions, function(co){                
+                if( co.organisationUnits && co.organisationUnits.length > 0 ){                    
+                    if( co.organisationUnits.indexOf( selectedOrgUnit.id ) !== -1){
+                        _categoryOptions.push( co );
+                    }
+                }
+                else{
+                    _categoryOptions.push( co );
+                }
+            });          
+        }
+        else{
+            _categoryOptions = categoryOptions;
+        }
+        
+        return _categoryOptions;
+    };
+})
+
