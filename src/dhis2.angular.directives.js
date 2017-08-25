@@ -1012,4 +1012,22 @@ var d2Directives = angular.module('d2Directives', [])
             };
         }
     };
+})
+
+.directive('moreOptionsList', function() {
+    return {
+        restrict: 'E',            
+        templateUrl: "./templates/more-options-list.html",
+        scope: {
+            ngModel: '=',
+            ngRequired: '=',
+            ngDisabled: '@',
+            onSelect: '&',
+            uiSelectMatchNgClass: '&',
+            maxOptionSize: '=',
+            uiSelectChoicesRepeat: '@',
+            allOptions: '=',
+            optionNgBindHtml: '='
+        }
+    };
 });
