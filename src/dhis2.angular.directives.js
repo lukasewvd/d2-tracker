@@ -305,9 +305,11 @@ var d2Directives = angular.module('d2Directives', [])
             var minDate = $parse(attrs.minDate)(scope);
             var maxDate = $parse(attrs.maxDate)(scope);
             var calendar = $.calendars.instance(calendarSetting.keyCalendar);
+            var pickerClass = attrs.pickerClass;
 
             var initializeDatePicker = function( sDate, eDate ){
                 element.calendarsPicker({
+                    pickerClass: pickerClass,
                     changeMonth: true,
                     dateFormat: dateFormat,
                     yearRange: '-120:+30',
