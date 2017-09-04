@@ -3238,6 +3238,12 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             }
             return orgUnitPromise;
         },
+        getByName: function(name){            
+            var promise = $http.get( DHIS2URL + '/organisationUnits.json?paging=false&fields=id,displayName,path,level,children[id,displayName,path,level,children[id]]&filter=displayName:ilike:' + name ).then(function(response){
+                return response.data;
+            });
+            return promise;        
+        },
         getViewTreeRoot: function(){
             var def = $q.defer();            
             var settings = SessionStorageService.get('USER_PROFILE');            

@@ -644,6 +644,18 @@ var d2Controllers = angular.module('d2Controllers', [])
         }
     });
 
+    //filter orgunits
+    $scope.filterOrgUnits = function( clear ){
+        if( !$scope.orgUnitFilterText || clear ){
+            $scope.orgUnits = angular.copy( $scope.orgUnitsCopy );
+            $scope.orgUnitFilterText = undefined;
+            return;
+        }
+        
+        OrgUnitFactory.getByName( $scope.orgUnitFilterText ).then(function( response ){            
+            $scope.orgUnits = response.organisationUnits;
+        });
+    };
 
     //expand/collapse of search orgunit tree
     $scope.expandCollapse = function(orgUnit) {

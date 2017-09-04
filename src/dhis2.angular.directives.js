@@ -89,6 +89,36 @@ var d2Directives = angular.module('d2Directives', [])
     };
 })
 
+.directive('d2OnBlurChange', function ($parse) {
+    return function (scope, element, attr) {
+        var fn = $parse(attr['d2OnBlurChange']);
+        var hasChanged = false;
+        element.on('change', function (event) {
+            hasChanged = true;
+        });
+        
+        element.on('blur', function (event) {
+            if (hasChanged) {
+                scope.$apply(function () {
+                    fn(scope, {$event: event});
+                });
+                hasChanged = false;
+            }
+        });
+    };
+})
+
+.directive('d2OnEnterBlur', function() {  
+    return function(scope, element, attrs) {
+        element.bind("keydown keypress", function(event) {
+            if(event.which === 13) {
+                element.blur();
+                event.preventDefault();
+            }
+        });
+    };
+})
+
 .directive('blurOrChange', function () {
 
     return function (scope, elem, attrs) {
