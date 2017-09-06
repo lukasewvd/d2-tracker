@@ -95,7 +95,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             authority.canUnEnrollTei = auth['F_PROGRAM_UNENROLLMENT'] || auth['ALL'] ? true : false;
             authority.canAdministerDashboard = auth['F_PROGRAM_DASHBOARD_CONFIG_ADMIN'] || auth['ALL'] ? true : false;
             authority.canUnCompleteEvent = auth['F_UNCOMPLETE_EVENT'] || auth['ALL'] ? true : false;
-            authoriry.canSearchTeiAcrossAll = auth['F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS'] || auth['ALL'] ? true : false;
+            authority.canSearchTeiAcrossAll = auth['F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS'] || auth['ALL'] ? true : false;
             return authority;
         }
     };
