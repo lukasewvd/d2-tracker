@@ -1019,15 +1019,42 @@ var d2Directives = angular.module('d2Directives', [])
         restrict: 'E',            
         templateUrl: "./templates/more-options-list.html",
         scope: {
-            mopModel: '=',
+			mopModel: '=',
+			mopModelId: '=',
             mopRequired: '=',
-            //mopDisabled: '@',
+            mopDisabled: '=',
+			mopSaveMethode: '&',
+			mopSaveMethodeParameter1: '=',
+			mopSaveMethodeParameter2: '=',
+			mopAllOptions: '=',
+			mopMaxOptionSize: '=',
+			mopUseNotification: '=',
+			mopElement: '='
+		},
+		link: function (scope, element, attrs) {
+            
+        },
+        controller: function($scope) {
+			$scope.saveOption = function() {
+				$scope.mopSaveMethode()($scope.mopSaveMethodeParameter1, $scope.mopSaveMethodeParameter2);
+			};
 
-            //mopOnSelect does NOT work as intended.
-            mopOnSelect: '&',
-            mopNgClass: '&',
-            mopMaxOptionSize: '=',
-            mopAllOptions: '=',
-        }
+			$scope.getInputNotifcationClass = function(id) {
+				event = $scope.mopModel;
+				
+				if($scope.mopElement.id && $scope.mopElement.id === id && $scope.mopElement.event && $scope.mopElement.event === event.event) {
+					if($scope.mopElement.pending) {
+						return 'input-pending';
+					}
+					
+					if($scope.mopElement.saved) {
+						return 'input-success';
+					} else {
+						return 'input-error';
+					}            
+				}  
+				return '';
+			};
+		}
     };
 });

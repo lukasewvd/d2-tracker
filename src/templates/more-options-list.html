@@ -1,14 +1,15 @@
-<!-- Add: ng-disabled="mopDisabled" when the problem is fixed. -->
-
-<ui-select  ng-model="mopModel"
+<p>--- Start Directive ---</p>
+<ui-select  ng-model="mopModel[mopModelId]"
             theme="select2"
             ng-required="mopRequired"
+            ng-disabled="mopDisabled"
             name="foo"
-            on-select="mopOnSelect"
+            on-select="saveOption()"
             style="width: 100%">
-    <ui-select-match allow-clear="true" ng-class="mopNgClass"  class="form-control-ui-select"  placeholder="{{'select_or_search' | translate}}">{{$select.selected.displayName  || $select.selected}}</ui-select-match>
-    <ui-select-choices repeat="option in mopAllOptions | filter: $select.search | limitTo: (mopMaxOptionSize + 1)" ui-disable-choice="$index >= mopMaxOptionSize">
+    <ui-select-match allow-clear="true" ng-class="mopUseNotification ? getInputNotifcationClass(mopModelId, datetimeModel) : ''"  class="form-control-ui-select"  placeholder="{{'select_or_search' | translate}}">{{$select.selected.displayName  || $select.selected}}</ui-select-match>
+    <ui-select-choices repeat="option.displayName as option in mopAllOptions | filter: $select.search | limitTo: (mopMaxOptionSize + 1)" ui-disable-choice="$index >= mopMaxOptionSize">
         <option ng-if="$index < mopMaxOptionSize" ng-bind-html="option.displayName | highlight: $select.search"></option>
         <option align="center" ng-if="$index >= mopMaxOptionSize" style="color:gray;" disable="true">{{mopAllOptions.length - mopMaxOptionSize}} {{'more_options_available' | translate}}</option>
     </ui-select-choices>
 </ui-select>
+<p>--- End Directive ---</p>
