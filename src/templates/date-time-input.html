@@ -1,0 +1,35 @@
+<p>--- Start Directive ---</p>
+<div class="hideInPrint row" ng-init="dateTimeInit()">
+    <div class="col-sm-7" style="padding-right: 0px">
+        <input type="text"
+               placeholder="{{datetimeDatePlaceholder}}"
+               class="form-control"
+               ng-class="datetimeUseNotification ? getInputNotifcationClass(datetimeModelId, datetimeModel) : ''"
+               d2-date
+               d2-date-validator
+               max-date="datetimeMaxDate"
+               ng-model="dateTime.date"
+               ng-required="datetimeRequired"
+               ng-disabled="datetimeDisabled"
+               blur-or-change="saveDateTime(true)"
+               name="foo">
+    </div>
+
+    <div class="col-sm-5" style="padding-left: 0px">
+        <input type="text"
+               placeholder="{{'hours_and_minutes' | translate}}"
+               class="form-control"
+               ng-class="datetimeUseNotification ? getInputNotifcationClass(datetimeModelId, datetimeModel) : ''"
+               ng-model="dateTime.time"
+               ng-required="datetimeRequired"
+               ng-disabled="datetimeDisabled"
+               ng-change="autoTimeFormat()"
+               ng-blur="saveDateTime(false)"
+               name="foo">
+    </div>
+</div>
+
+<div class="not-for-screen">
+    <input type="text" class="form-control" value={{datetimeModel[datetimeModelId]}}>
+</div>
+<p>--- End Directive ---</p>
