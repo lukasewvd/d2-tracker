@@ -1,9 +1,8 @@
 <p>--- Start Directive ---</p>
-<div class="hideInPrint row" ng-init="dateTimeInit()">
-    <div class="col-sm-7" style="padding-right: 0px">
+<div class="hideInPrint input-group" ng-init="dateTimeInit()">
         <input type="text"
                placeholder="{{datetimeDatePlaceholder}}"
-               class="form-control"
+               class="form-control no-right-radius"
                ng-class="datetimeUseNotification ? getInputNotifcationClass(datetimeModelId, datetimeModel) : ''"
                d2-date
                d2-date-validator
@@ -13,12 +12,10 @@
                ng-disabled="datetimeDisabled"
                blur-or-change="saveDateTime(true)"
                name="foo">
-    </div>
-
-    <div class="col-sm-5" style="padding-left: 0px">
+        <span class="input-group-btn empty-span"></span>
         <input type="text"
                placeholder="{{'hours_and_minutes' | translate}}"
-               class="form-control"
+               class="form-control no-left-radius no-right-radius"
                ng-class="datetimeUseNotification ? getInputNotifcationClass(datetimeModelId, datetimeModel) : ''"
                ng-model="dateTime.time"
                ng-required="datetimeRequired"
@@ -26,7 +23,11 @@
                ng-change="autoTimeFormat()"
                ng-blur="saveDateTime(false)"
                name="foo">
-    </div>
+        <span class="input-group-btn hideInPrint">
+            <button class="btn btn-danger hideInPrint trim" type="button" ng-disabled="datetimeDisabled" title="Clear" ng-click="clearDateTime()"> 
+                <i class="fa fa-trash-o"></i>                             
+            </button>
+        </span>
 </div>
 
 <div class="not-for-screen">

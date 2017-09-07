@@ -964,6 +964,7 @@ var d2Directives = angular.module('d2Directives', [])
             
         },
         controller: function($scope, ModalService) {
+			$scope.firstInput = true;
             $scope.dateTimeInit = function() {
                 $scope.dateTime = { date: null, time: null};        
                 if(!$scope.datetimeModel[$scope.datetimeModelId]) {
@@ -1031,12 +1032,16 @@ var d2Directives = angular.module('d2Directives', [])
                 }
         
                 //Regex expression to check that the correct format is followed. Might lead to bug if format is changed in system settings.
-                if($scope.datetimeModel[$scope.datetimeModelId].match(/^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d)$/)) {
+                if($scope.datetimeModel[$scope.datetimeModelId].match(/^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d)$/) && $scope.datetimeSaveMethode()) {
                     $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1, $scope.datetimeSaveMethodeParameter2);
-                } else if(!$scope.dateTime.date && !$scope.dateTime.time) {
+                } else if(!$scope.dateTime.date && !$scope.dateTime.time && $scope.datetimeSaveMethode()) {
                     $scope.datetimeModel[$scope.datetimeModelId] = null;
                     $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1, $scope.datetimeSaveMethodeParameter2);
                 } else {
+					if($scope.firstInput) {
+						$scope.firstInput = false;
+						return;
+					}
                     var modalOptions = {
                         headerText: 'warning',
                         bodyText: 'both_date_and_time'
@@ -1060,7 +1065,15 @@ var d2Directives = angular.module('d2Directives', [])
                     }            
                 }  
                 return 'form-control';
-            };
+			};
+			
+			$scope.clearDateTime = function() {
+				$scope.dateTime.date = null;
+				$scope.dateTime.time = null;
+				if($scope.datetimeSaveMethode()) {
+					$scope.saveDateTime();
+				}
+			};
         }
     };
 })
