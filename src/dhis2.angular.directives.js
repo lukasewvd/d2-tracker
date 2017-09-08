@@ -956,6 +956,7 @@ var d2Directives = angular.module('d2Directives', [])
             datetimeSaveMethode: '&',
             datetimeSaveMethodeParameter1: '=',
             datetimeSaveMethodeParameter2: '=',
+            datetimeDisablePopup: '=',
             datetimeUseNotification: "=",
             datetimeElement: '='
 
@@ -1037,7 +1038,7 @@ var d2Directives = angular.module('d2Directives', [])
                 } else if(!$scope.dateTime.date && !$scope.dateTime.time && $scope.datetimeSaveMethode()) {
                     $scope.datetimeModel[$scope.datetimeModelId] = null;
                     $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1, $scope.datetimeSaveMethodeParameter2);
-                } else {
+                } else if(!$scope.datetimeDisablePopup) {
 					if($scope.firstInput) {
 						$scope.firstInput = false;
 						return;
@@ -1090,6 +1091,7 @@ var d2Directives = angular.module('d2Directives', [])
             timeSaveMethode: '&',
             timeSaveMethodeParameter1: '=',
             timeSaveMethodeParameter2: '=',
+            timeDisablePopup: '=',
             timeUseNotification: "=",
             timeElement: '='
 
@@ -1146,7 +1148,7 @@ var d2Directives = angular.module('d2Directives', [])
                 //Regex expression to check that the correct format is followed. Migh lead to bug if format is changed in system settings.
                 if(!$scope.timeModel[$scope.timeModelId] || $scope.timeModel[$scope.timeModelId].match(/^(\d\d:\d\d)$/)) {
                     $scope.timeSaveMethode()($scope.timeSaveMethodeParameter1, $scope.timeSaveMethodeParameter2);
-                } else {
+                } else if (!$scope.timeDisablePopup) {
                     var modalOptions = {
                         headerText: 'warning',
                         bodyText: 'wrong_time_format'
