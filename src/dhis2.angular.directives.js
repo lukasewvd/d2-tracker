@@ -1014,40 +1014,40 @@ var d2Directives = angular.module('d2Directives', [])
     };
 })
 
-.directive('moreOptionsList', function() {
+.directive('d2OptionList', function() {
     return {
         restrict: 'E',            
         templateUrl: "./templates/more-options-list.html",
         scope: {
-			mopModel: '=',
-			mopModelId: '=',
-            mopRequired: '=',
-            mopDisabled: '=',
-			mopSaveMethode: '&',
-			mopSaveMethodeParameter1: '=',
-			mopSaveMethodeParameter2: '=',
-			mopAllOptions: '=',
-			mopMaxOptionSize: '=',
-			mopUseNotification: '=',
-			mopElement: '='
+			d2Model: '=',
+			d2ModelId: '=',
+            d2Required: '=',
+            d2Disabled: '=',
+			d2SaveMethode: '&',
+			d2SaveMethodeParameter1: '=',
+			d2SaveMethodeParameter2: '=',
+			d2AllOptions: '=',
+			d2MaxOptionSize: '=',
+			d2UseNotification: '=',
+			d2Element: '='
 		},
 		link: function (scope, element, attrs) {
             
         },
         controller: function($scope) {
 			$scope.saveOption = function() {
-				$scope.mopSaveMethode()($scope.mopSaveMethodeParameter1, $scope.mopSaveMethodeParameter2);
+				$scope.d2SaveMethode()($scope.d2SaveMethodeParameter1, $scope.d2SaveMethodeParameter2);
 			};
 
 			$scope.getInputNotifcationClass = function(id) {
-				event = $scope.mopModel;
+				event = $scope.d2Model;
 				
-				if($scope.mopElement.id && $scope.mopElement.id === id && $scope.mopElement.event && $scope.mopElement.event === event.event) {
-					if($scope.mopElement.pending) {
+				if($scope.d2Element.id && $scope.d2Element.id === id && $scope.d2Element.event && $scope.d2Element.event === event.event) {
+					if($scope.d2Element.pending) {
 						return 'input-pending';
 					}
 					
-					if($scope.mopElement.saved) {
+					if($scope.d2Element.saved) {
 						return 'input-success';
 					} else {
 						return 'input-error';
