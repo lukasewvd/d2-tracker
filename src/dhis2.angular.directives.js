@@ -956,6 +956,7 @@ var d2Directives = angular.module('d2Directives', [])
             datetimeSaveMethode: '&',
             datetimeSaveMethodeParameter1: '=',
             datetimeSaveMethodeParameter2: '=',
+            datetimeField: '=',
             datetimeDisablePopup: '=',
             datetimeUseNotification: "=",
             datetimeElement: '='
@@ -964,7 +965,7 @@ var d2Directives = angular.module('d2Directives', [])
         link: function (scope, element, attrs) {
             
         },
-        controller: function($scope, ModalService) {
+        controller: function($scope, ModalService, DateUtils) {
 			$scope.firstInput = true;
             $scope.dateTimeInit = function() {
                 $scope.dateTime = { date: null, time: null};        
@@ -972,7 +973,7 @@ var d2Directives = angular.module('d2Directives', [])
                     return;
                 }
                 var values = $scope.datetimeModel[$scope.datetimeModelId].split('T');
-                $scope.dateTime.date = values[0];
+                $scope.dateTime.date = DateUtils.formatFromApiToUser(values[0]);
                 $scope.dateTime.time = values[1];
             };
 
@@ -1027,17 +1028,23 @@ var d2Directives = angular.module('d2Directives', [])
                 }
         
                 if(isDate) {
-                    $scope.datetimeModel[$scope.datetimeModelId] = $scope.dateTime.date + "T" + splitDateTime[1];
+                    $scope.datetimeModel[$scope.datetimeModelId] = DateUtils.formatFromUserToApi($scope.dateTime.date) + "T" + splitDateTime[1];
                 } else {
                     $scope.datetimeModel[$scope.datetimeModelId] = splitDateTime[0] + "T" + $scope.dateTime.time;
                 }
-        
-                //Regex expression to check that the correct format is followed. Might lead to bug if format is changed in system settings.
-                if($scope.datetimeModel[$scope.datetimeModelId].match(/^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d)$/) && $scope.datetimeSaveMethode()) {
-                    $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1, $scope.datetimeSaveMethodeParameter2);
+                
+                if($scope.dateTime.date && $scope.dateTime.time && $scope.datetimeSaveMethode() && $scope.datetimeModel[$scope.datetimeModelId].match(/^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d)$/)) {
+                    if(isDate && $scope.datetimeField) {
+                        $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1, $scope.datetimeField.foo);
+                    } else if($scope.datetimeField) {
+                        $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1, $scope.datetimeField.foo2);
+                    } else {
+                        $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1, $scope.datetimeSaveMethodeParameter2);                        
+                    }
                 } else if(!$scope.dateTime.date && !$scope.dateTime.time && $scope.datetimeSaveMethode()) {
                     $scope.datetimeModel[$scope.datetimeModelId] = null;
-                    $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1, $scope.datetimeSaveMethodeParameter2);
+                    $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1);
+
                 } else if(!$scope.datetimeDisablePopup) {
 					if($scope.firstInput) {
 						$scope.firstInput = false;
@@ -1054,6 +1061,14 @@ var d2Directives = angular.module('d2Directives', [])
             };
 
             $scope.getInputNotifcationClass = function(id, event){
+                if($scope.dateTime.time && !$scope.dateTime.time.match(/^(\d\d:\d\d)$/)) {
+                    return 'form-control input-pending';
+                }
+
+                if(!$scope.dateTime.date !== !$scope.dateTime.time) {
+                    return 'form-control input-pending';
+                }
+
                 if($scope.datetimeElement.id && $scope.datetimeElement.id === id && $scope.datetimeElement.event && $scope.datetimeElement.event === event.event) {
                     if($scope.datetimeElement.pending) {
                         return 'form-control input-pending';
@@ -1070,7 +1085,7 @@ var d2Directives = angular.module('d2Directives', [])
 			
 			$scope.clearDateTime = function() {
 				$scope.dateTime.date = null;
-				$scope.dateTime.time = null;
+                $scope.dateTime.time = null;
 				if($scope.datetimeSaveMethode()) {
 					$scope.saveDateTime();
 				}
@@ -1145,7 +1160,6 @@ var d2Directives = angular.module('d2Directives', [])
             };
 
             $scope.saveTime = function() {
-                //Regex expression to check that the correct format is followed. Migh lead to bug if format is changed in system settings.
                 if(!$scope.timeModel[$scope.timeModelId] || $scope.timeModel[$scope.timeModelId].match(/^(\d\d:\d\d)$/)) {
                     $scope.timeSaveMethode()($scope.timeSaveMethodeParameter1, $scope.timeSaveMethodeParameter2);
                 } else if (!$scope.timeDisablePopup) {
@@ -1161,6 +1175,10 @@ var d2Directives = angular.module('d2Directives', [])
             };
 
             $scope.getInputNotifcationClass = function(id, event){
+                if($scope.timeModel[$scope.timeModelId] && !$scope.timeModel[$scope.timeModelId].match(/^(\d\d:\d\d)$/)) {
+                    return 'form-control input-pending';
+                }
+
                 if($scope.timeElement.id && $scope.timeElement.id === id && $scope.timeElement.event && $scope.timeElement.event === event.event) {
                     if($scope.timeElement.pending) {
                         return 'form-control input-pending';

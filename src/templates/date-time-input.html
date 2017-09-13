@@ -1,7 +1,7 @@
 <div class="hideInPrint input-group" ng-init="dateTimeInit()">
         <input type="text"
                placeholder="{{datetimeDatePlaceholder}}"
-               class="form-control no-right-radius"
+               class="form-control no-right-radius ng-valid-date-validator"
                ng-class="datetimeUseNotification ? getInputNotifcationClass(datetimeModelId, datetimeModel) : ''"
                d2-date
                d2-date-validator
@@ -9,7 +9,7 @@
                ng-model="dateTime.date"
                ng-required="datetimeRequired"
                ng-disabled="datetimeDisabled"
-               blur-or-change="saveDateTime(true)"
+               blur-or-change="saveDateTime(true, 'foo')"
                name="foo">
         <span class="input-group-btn empty-span"></span>
         <input type="text"
@@ -20,8 +20,8 @@
                ng-required="datetimeRequired"
                ng-disabled="datetimeDisabled"
                ng-change="autoTimeFormat()"
-               ng-blur="saveDateTime(false)"
-               name="foo">
+               ng-blur="saveDateTime(false, 'foo2')"
+               name="foo2">
         <span class="input-group-btn hideInPrint">
             <button class="btn btn-danger hideInPrint trim" type="button" ng-disabled="datetimeDisabled" title="Clear" ng-click="clearDateTime()"> 
                 <i class="fa fa-trash-o"></i>                             
