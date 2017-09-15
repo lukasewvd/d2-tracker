@@ -1,0 +1,15 @@
+<div class="hideInPrint">
+        <input type="text"
+               ng-model="timeModel[timeModelId]"
+               placeholder="{{'hours_and_minutes' | translate}}"
+               class="form-control"
+               ng-class="timeUseNotification ? getInputNotifcationClass(timeModelId, timeModel) : ''"
+               ng-required="timeRequired"
+               ng-change="autoTimeFormat()"
+               ng-disabled="timeDisabled"
+               ng-blur="saveTime()"
+               name="foo"/>
+    </div>
+    <div class="not-for-screen">
+        <input type="text" class="form-control" value={{timeModel[timeModelId]}}>
+    </div>
