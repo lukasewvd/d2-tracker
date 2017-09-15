@@ -974,6 +974,260 @@ var d2Directives = angular.module('d2Directives', [])
     };
 })
 
+.directive('d2DateTime', function() {
+    return {
+        restrict: 'E',            
+        templateUrl: "./templates/date-time-input.html",
+        scope: {      
+            datetimeModel: '=',      
+            datetimeRequired: '=',
+            datetimeDisabled: '=',
+            datetimeDatePlaceholder: '@',
+            datetimeModelId: '=',
+            datetimeMaxDate: '@',
+            datetimeSaveMethode: '&',
+            datetimeSaveMethodeParameter1: '=',
+            datetimeSaveMethodeParameter2: '=',
+            datetimeField: '=',
+            datetimeDisablePopup: '=',
+            datetimeUseNotification: "=",
+            datetimeElement: '='
+
+        },
+        link: function (scope, element, attrs) {
+            
+        },
+        controller: function($scope, ModalService, DateUtils) {
+			$scope.firstInput = true;
+            $scope.dateTimeInit = function() {
+                $scope.dateTime = { date: null, time: null};        
+                if(!$scope.datetimeModel[$scope.datetimeModelId]) {
+                    return;
+                }
+                var values = $scope.datetimeModel[$scope.datetimeModelId].split('T');
+                $scope.dateTime.date = DateUtils.formatFromApiToUser(values[0]);
+                $scope.dateTime.time = values[1];
+            };
+
+            $scope.autoTimeFormat = function() {
+                var time = $scope.dateTime.time;
+
+                if (!time) {
+                    return;
+                }
+        
+                //Stops user from typing time longer the four digits (HH:MM).
+                if(time.length > 5) {
+                    $scope.dateTime.time = $scope.dateTime.time.substr(0, 5);
+                    return;
+                }
+                
+                //Check for hours not higher than 23, otherwise set to 00.
+                if(time.length > 1) {
+                    var temp = time.substr(0, 2);
+                    temp = parseInt(temp);
+                    if(temp >= 24) {
+                        time = '00' + time.substr(2);
+                    }
+                }
+        
+                //Check for minutes not higher than 59, otherwise set to 00.
+                if(time.length > 4) {
+                    var temp = time.substr(3);
+                    temp = parseInt(temp);
+                    if(temp >= 60) {
+                        time = time.substr(0, 2) + '00';
+                    }
+                }
+        
+                time = time.replace(/[\W\s\._\-]+/g, '');
+        
+                var split = 2;
+                var chunk = [];
+        
+                for (var i = 0; i < time.length; i += split) {;
+                    chunk.push(time.substr(i, split));
+                }
+                time = chunk.join(":");
+                $scope.dateTime.time = time;
+            };
+
+            $scope.saveDateTime = function(isDate) {
+                var splitDateTime = '';
+
+                if($scope.datetimeModel[$scope.datetimeModelId]) {
+                    splitDateTime = $scope.datetimeModel[$scope.datetimeModelId].split("T");
+                }
+        
+                if(isDate) {
+                    $scope.datetimeModel[$scope.datetimeModelId] = DateUtils.formatFromUserToApi($scope.dateTime.date) + "T" + splitDateTime[1];
+                } else {
+                    $scope.datetimeModel[$scope.datetimeModelId] = splitDateTime[0] + "T" + $scope.dateTime.time;
+                }
+                
+                if($scope.dateTime.date && $scope.dateTime.time && $scope.datetimeSaveMethode() && $scope.datetimeModel[$scope.datetimeModelId].match(/^(\d\d\d\d-\d\d-\d\dT\d\d:\d\d)$/)) {
+                    if(isDate && $scope.datetimeField) {
+                        $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1, $scope.datetimeField.foo);
+                    } else if($scope.datetimeField) {
+                        $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1, $scope.datetimeField.foo2);
+                    } else {
+                        $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1, $scope.datetimeSaveMethodeParameter2);                        
+                    }
+                } else if(!$scope.dateTime.date && !$scope.dateTime.time && $scope.datetimeSaveMethode()) {
+                    $scope.datetimeModel[$scope.datetimeModelId] = null;
+                    $scope.datetimeSaveMethode()($scope.datetimeSaveMethodeParameter1);
+
+                } else if(!$scope.datetimeDisablePopup) {
+					if($scope.firstInput) {
+						$scope.firstInput = false;
+						return;
+					}
+                    var modalOptions = {
+                        headerText: 'warning',
+                        bodyText: 'both_date_and_time'
+                    };
+                    
+                    ModalService.showModal({},modalOptions);
+                    return;
+                }
+            };
+
+            $scope.getInputNotifcationClass = function(id, event){
+                if($scope.dateTime.time && !$scope.dateTime.time.match(/^(\d\d:\d\d)$/)) {
+                    return 'form-control input-pending';
+                }
+
+                if(!$scope.dateTime.date !== !$scope.dateTime.time) {
+                    return 'form-control input-pending';
+                }
+
+                if($scope.datetimeElement.id && $scope.datetimeElement.id === id && $scope.datetimeElement.event && $scope.datetimeElement.event === event.event) {
+                    if($scope.datetimeElement.pending) {
+                        return 'form-control input-pending';
+                    }
+                    
+                    if($scope.datetimeElement.saved) {
+                        return 'form-control input-success';
+                    } else {
+                        return 'form-control input-error';
+                    }            
+                }  
+                return 'form-control';
+			};
+			
+			$scope.clearDateTime = function() {
+				$scope.dateTime.date = null;
+                $scope.dateTime.time = null;
+				if($scope.datetimeSaveMethode()) {
+					$scope.saveDateTime();
+				}
+			};
+        }
+    };
+})
+
+.directive('d2Time', function() {
+    return {
+        restrict: 'E',            
+        templateUrl: "./templates/time-input.html",
+        scope: {      
+            timeModel: '=',
+            timeModelId: '=',     
+            timeRequired: '=',
+            timeDisabled: '=',
+            timeSaveMethode: '&',
+            timeSaveMethodeParameter1: '=',
+            timeSaveMethodeParameter2: '=',
+            timeDisablePopup: '=',
+            timeUseNotification: "=",
+            timeElement: '='
+
+        },
+        link: function (scope, element, attrs) {
+            
+        },
+        controller: function($scope, ModalService) {
+            $scope.autoTimeFormat = function() {
+                var time = $scope.timeModel[$scope.timeModelId];
+
+                if (!time) {
+                    return;
+                }
+        
+                //Stops user from typing time longer the four digits (HH:MM).
+                if(time.length > 5) {
+                    $scope.timeModel[$scope.timeModelId] = $scope.timeModel[$scope.timeModelId].substr(0, 5);
+                    return;
+                }
+                
+                //Check for hours not higher than 23, otherwise set to 00.
+                if(time.length > 1) {
+                    var temp = time.substr(0, 2);
+                    temp = parseInt(temp);
+                    if(temp >= 24) {
+                        time = '00' + time.substr(2);
+                    }
+                }
+        
+                //Check for minutes not higher than 59, otherwise set to 00.
+                if(time.length > 4) {
+                    var temp = time.substr(3);
+                    temp = parseInt(temp);
+                    if(temp >= 60) {
+                        time = time.substr(0, 2) + '00';
+                    }
+                }
+        
+                time = time.replace(/[\W\s\._\-]+/g, '');
+        
+                var split = 2;
+                var chunk = [];
+        
+                for (var i = 0; i < time.length; i += split) {;
+                    chunk.push(time.substr(i, split));
+                }
+
+                time = chunk.join(":");
+                $scope.timeModel[$scope.timeModelId] = time;
+            };
+
+            $scope.saveTime = function() {
+                if(!$scope.timeModel[$scope.timeModelId] || $scope.timeModel[$scope.timeModelId].match(/^(\d\d:\d\d)$/)) {
+                    $scope.timeSaveMethode()($scope.timeSaveMethodeParameter1, $scope.timeSaveMethodeParameter2);
+                } else if (!$scope.timeDisablePopup) {
+                    var modalOptions = {
+                        headerText: 'warning',
+                        bodyText: 'wrong_time_format'
+                    };
+                    
+                    ModalService.showModal({},modalOptions);
+                    return;
+                }
+               
+            };
+
+            $scope.getInputNotifcationClass = function(id, event){
+                if($scope.timeModel[$scope.timeModelId] && !$scope.timeModel[$scope.timeModelId].match(/^(\d\d:\d\d)$/)) {
+                    return 'form-control input-pending';
+                }
+
+                if($scope.timeElement.id && $scope.timeElement.id === id && $scope.timeElement.event && $scope.timeElement.event === event.event) {
+                    if($scope.timeElement.pending) {
+                        return 'form-control input-pending';
+                    }
+                    
+                    if($scope.timeElement.saved) {
+                        return 'form-control input-success';
+                    } else {
+                        return 'form-control input-error';
+                    }            
+                }  
+                return 'form-control';
+            };
+        }
+    };
+})
+
 .directive('d2Age', function( CalendarService, DateUtils ){
     return {
         restrict: 'EA',            
