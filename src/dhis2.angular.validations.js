@@ -88,6 +88,27 @@ angular.module("d2Directives")
     };
 })
 
+.directive("d2UrlValidator", function() {
+    return {
+        restrict: "A",         
+        require: "ngModel",         
+        link: function(scope, element, attrs, ngModel) {
+        	
+            var isRequired = attrs.ngRequired === 'true';
+        	
+            ngModel.$validators.urlValidator = function(value) {
+                if(!value){
+                    return !isRequired;
+                }
+                if(value.match(/^(http|https):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}(:[0-9]{1,5})?(\/.*)?$/)) {
+                    return true;
+                }
+                return false;
+            };
+        }
+    };
+})
+
 .directive("d2CustomCoordinateValidator", function() {
     return {
         restrict: "A",         
