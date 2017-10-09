@@ -88,6 +88,24 @@ angular.module("d2Directives")
     };
 })
 
+.directive("d2TimeValidator", function() {
+    return {
+        restrict: "A",         
+        require: "ngModel",         
+        link: function(scope, element, attrs, ngModel) {        	
+           
+            var isRequired = attrs.ngRequired === 'true';
+        	
+            ngModel.$validators.timeValidator = function(value) {
+                if(!value){
+                    return !isRequired;
+                }
+                return /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/.test(value);                
+            };
+        }
+    };
+})
+
 .directive("d2UrlValidator", function() {
     return {
         restrict: "A",         

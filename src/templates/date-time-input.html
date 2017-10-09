@@ -16,6 +16,8 @@
                placeholder="{{'hours_and_minutes' | translate}}"
                class="form-control no-left-radius no-right-radius"
                ng-class="datetimeUseNotification ? getInputNotifcationClass(datetimeModelId, datetimeModel) : ''"
+               d2-time-validator
+               d2-time-parser
                ng-model="dateTime.time"
                ng-required="datetimeRequired"
                ng-disabled="datetimeDisabled"
@@ -31,4 +33,8 @@
 
 <div class="not-for-screen">
     <input type="text" class="form-control" value={{datetimeModel[datetimeModelId]}}>
+</div>
+
+<div ng-messages="datetimeField.foo2.$error" ng-if="interacted(datetimeField.foo2, datetimeOuterform)" class="required">
+    <span ng-message="timeValidator">{{'time_error' | translate}}</span>
 </div>
