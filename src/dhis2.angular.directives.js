@@ -977,7 +977,7 @@ var d2Directives = angular.module('d2Directives', [])
 .directive('d2DateTime', function() {
     return {
         restrict: 'E',            
-        templateUrl: "./templates/date-time-input.html",
+        templateUrl: "./templates/date-time-input.html",       
         scope: {      
             datetimeModel: '=',      
             datetimeRequired: '=',
@@ -991,11 +991,12 @@ var d2Directives = angular.module('d2Directives', [])
             datetimeField: '=',
             datetimeDisablePopup: '=',
             datetimeUseNotification: "=",
-            datetimeElement: '='
+            datetimeElement: '=',
+            datetimeOuterform: '='
 
         },
         link: function (scope, element, attrs) {
-            
+           
         },
         controller: function($scope, ModalService, DateUtils) {
 			$scope.firstInput = true;
@@ -1009,48 +1010,11 @@ var d2Directives = angular.module('d2Directives', [])
                 $scope.dateTime.time = values[1];
             };
 
-            $scope.autoTimeFormat = function() {
-                var time = $scope.dateTime.time;
-
-                if (!time) {
-                    return;
-                }
-        
-                //Stops user from typing time longer the four digits (HH:MM).
-                if(time.length > 5) {
-                    $scope.dateTime.time = $scope.dateTime.time.substr(0, 5);
-                    return;
-                }
-                
-                //Check for hours not higher than 23, otherwise set to 00.
-                if(time.length > 1) {
-                    var temp = time.substr(0, 2);
-                    temp = parseInt(temp);
-                    if(temp >= 24) {
-                        time = '00' + time.substr(2);
-                    }
-                }
-        
-                //Check for minutes not higher than 59, otherwise set to 00.
-                if(time.length > 4) {
-                    var temp = time.substr(3);
-                    temp = parseInt(temp);
-                    if(temp >= 60) {
-                        time = time.substr(0, 2) + '00';
-                    }
-                }
-        
-                time = time.replace(/[\W\s\._\-]+/g, '');
-        
-                var split = 2;
-                var chunk = [];
-        
-                for (var i = 0; i < time.length; i += split) {;
-                    chunk.push(time.substr(i, split));
-                }
-                time = chunk.join(":");
-                $scope.dateTime.time = time;
-            };
+            $scope.interacted = function (field, form) {
+                var status = false;                
+                status = form.$submitted || field.$touched;                 
+                return status;
+            };           
 
             $scope.saveDateTime = function(isDate) {
                 var splitDateTime = '';
@@ -1126,6 +1090,34 @@ var d2Directives = angular.module('d2Directives', [])
     };
 })
 
+.directive("d2TimeParser", function() {
+    return {
+        restrict: "A",         
+        require: "ngModel",         
+        link: function(scope, element, attrs, ngModel) {
+            ngModel.$parsers.push(function(value){
+                if( /^(\d\d\d)$/.test(value)){
+                    var convertedValue = value.substring(0, 2) + ":" + value.charAt(2);
+                    ngModel.$setViewValue(convertedValue);
+                    ngModel.$commitViewValue();
+                    ngModel.$render();
+                    return convertedValue;
+                }
+
+                if(value.length > 5){
+                    var convertedValue = value.substring(0, 5);
+                    ngModel.$setViewValue(convertedValue);
+                    ngModel.$commitViewValue();
+                    ngModel.$render();
+                    return convertedValue;
+                }
+
+                return value;                
+            });
+        }
+    };
+})
+
 .directive('d2Time', function() {
     return {
         restrict: 'E',            
@@ -1146,51 +1138,7 @@ var d2Directives = angular.module('d2Directives', [])
         link: function (scope, element, attrs) {
             
         },
-        controller: function($scope, ModalService) {
-            $scope.autoTimeFormat = function() {
-                var time = $scope.timeModel[$scope.timeModelId];
-
-                if (!time) {
-                    return;
-                }
-        
-                //Stops user from typing time longer the four digits (HH:MM).
-                if(time.length > 5) {
-                    $scope.timeModel[$scope.timeModelId] = $scope.timeModel[$scope.timeModelId].substr(0, 5);
-                    return;
-                }
-                
-                //Check for hours not higher than 23, otherwise set to 00.
-                if(time.length > 1) {
-                    var temp = time.substr(0, 2);
-                    temp = parseInt(temp);
-                    if(temp >= 24) {
-                        time = '00' + time.substr(2);
-                    }
-                }
-        
-                //Check for minutes not higher than 59, otherwise set to 00.
-                if(time.length > 4) {
-                    var temp = time.substr(3);
-                    temp = parseInt(temp);
-                    if(temp >= 60) {
-                        time = time.substr(0, 2) + '00';
-                    }
-                }
-        
-                time = time.replace(/[\W\s\._\-]+/g, '');
-        
-                var split = 2;
-                var chunk = [];
-        
-                for (var i = 0; i < time.length; i += split) {;
-                    chunk.push(time.substr(i, split));
-                }
-
-                time = chunk.join(":");
-                $scope.timeModel[$scope.timeModelId] = time;
-            };
-
+        controller: function($scope, ModalService) {           
             $scope.saveTime = function() {
                 if(!$scope.timeModel[$scope.timeModelId] || $scope.timeModel[$scope.timeModelId].match(/^(\d\d:\d\d)$/)) {
                     $scope.timeSaveMethode()($scope.timeSaveMethodeParameter1, $scope.timeSaveMethodeParameter2);
